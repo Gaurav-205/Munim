@@ -141,6 +141,7 @@ def workbench_context(request: Request, snap: CaseSnapshot, paper_id: str | None
         "has_invoice": has_invoice,
         "payments": snap.payments,
         "step_label": views.step_label,
+        "upload_mb": request.app.state.settings.max_upload_bytes // (1024 * 1024),
     }
     ctx.update(views.clock_context(snap, t))
     return ctx

@@ -83,3 +83,17 @@ def test_foreign_host_is_refused_and_reader_is_replay(
 def test_provider_env_cannot_unpin_replay(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     entry = _load_entry(monkeypatch, tmp_path, MUNIM_PROVIDER="gemini")
     assert entry.settings.provider == "replay"
+
+
+def test_upload_limit_fits_vercel_body_cap(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    # Vercel refuses request bodies over 4.5 MB with its own page, before the app sees them.
+    entry = _load_entry(monkeypatch, tmp_path)
+    limit = entry.settings.max_upload_bytes
+    assert limit + 64 * 1024 < 4_500_000
+    with TestClient(entry.app, base_url="https://munim-demo.vercel.app") as client:
+        client.get("/")
+        token = client.cookies.get("munim_csrf_8765")
+        fields = {"title": "t", "supplier_name": "s", "buyer_name": "b", "csrf_token": token}
+        case = client.post("/cases", data=fields, follow_redirects=False)
+        page = client.get(case.headers["location"] + "?error=paper.err.size")
+    assert f"larger than {limit // (1024 * 1024)} MB" in page.text
