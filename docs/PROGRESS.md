@@ -170,5 +170,13 @@ Commit `f25d567` (2026-10-12 23:49:30 +0530, "docs: add Munim planning pack prep
 - Evidence: `pytest tests -q -m "not e2e and not a11y and not live"`: 944 passed. `pytest -m "e2e or a11y" --browser chromium`: 10 passed. ruff check/format, mypy (65 files), lint-imports (3 kept), bandit, check_licences, check_repo_files, check_secrets_baseline, build_tokens --check, design_lint, check_contrast, check_fonts, check_i18n: all exit 0.
 - Open: running `pytest tests` with e2e and other tests in one process makes later async tests fail (`asyncio.run() cannot be called from a running event loop`, per domain-verifier); `make` runs them in separate invocations. GitNexus still not installed in this worktree.
 
+### 2026-11-01 Production-readiness audit and Vercel prep
+- effca18: CI on `main` was red since 6c912f9 (`static` job: 13 detect-secrets hits in `skills-lock.json`, content hashes). Excluded the file from the scan.
+- d40a326: hosted uploads were capped at 15 MB but Vercel refuses bodies over 4.5 MB with its own page. `api/index.py` sets `max_upload_bytes` to 4 MB; `paper.err.size` now takes `{mb}` (en, hi, CONTENT.md). Test `test_upload_limit_fits_vercel_body_cap` failed first, then passed.
+- d7bc8a5: `requirements.txt` matches `uv export` again (dropped a hand-added unpinned `google-genai>=1.0`); stray Windows path removed from `.vercelignore`.
+- Vercel state found: project `munim` is paused (`DEPLOYMENT_PAUSED`, 503 on `munim-liard.vercel.app`); `munim-demo.vercel.app`, named in README and `api/index.py`, is not attached (404). The last production deploy was built from commits (46380ae, 10091ce) that no longer exist on GitHub. A preview of 2f04bc7 answered `/healthz` 200 with provider `replay` and the full header set.
+- Evidence: `make check` exit 0 (971 passed; coverage core 97.91%/94.79%, overall 91.91%). `pytest -m "e2e or a11y" --browser chromium`: 10 passed. Firefox e2e cannot launch in this sandbox (`sandbox_extension_issue_file_to_process ... Operation not permitted`); GitHub CI runs it. `make eval`: validate_report 0 problems.
+- GitNexus is not installed (`.gitnexus/run.cjs` missing), so impact/detect-changes could not run; callers checked by text search.
+
 STATUS: READY FOR RELEASE (v0.1.0)
 
