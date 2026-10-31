@@ -94,5 +94,3 @@ typing-inspection==0.4.4
     #   pydantic-settings
 uvicorn==0.54.0
     # via munim-web
-google-genai>=1.0
-    # optional Gemini provider for munim-ai
