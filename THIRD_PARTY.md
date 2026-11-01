@@ -13,7 +13,7 @@ Maintained by hand and checked by `scripts/check_licences.py`. Versions come fro
 | python-multipart | 0.0.32 | Apache-2.0 | Uploads | No |
 | python-dateutil | 2.9.0.post0 | Apache-2.0 / BSD-3 | Month arithmetic | No |
 | rapidfuzz | 3.14.6 | MIT | Name similarity | No |
-| Pillow / pillow-heif | 12.3.0 / 1.8.1 | HPND / BSD-3 | Images | No |
+| Pillow / pillow-heif | 13.0.0 / 1.8.1 | HPND / BSD-3 | Images | No |
 | pypdfium2 | 5.14.0 | Apache-2.0 / BSD-3 | PDF to image | No |
 | httpx | 0.28.1 | BSD-3 | HTTP client | No |
 | ollama (python client) | 0.6.3 | MIT | Provider | No |
