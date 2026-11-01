@@ -69,6 +69,29 @@ Synthetic results do not predict results on your papers. Real-paper testing, des
 - Hindi text is machine-drafted and **awaiting review by a native reader**.
 - No dark mode: the product is used in bright rooms and printed on paper.
 
+## Use the checks from an AI assistant (MCP)
+
+`munim-mcp` is a Model Context Protocol server (stdio) with four tools that call the same rules as the app: `check_gstin`, `check_invoice_arithmetic` (rule INV-TOTAL), `compute_msmed_interest` and `list_rules`. It takes typed values only; there is no tool to upload a document. `compute_msmed_interest` needs the Bank Rate table from you, because Munim does not assume a rate.
+
+After `make install`, point your client at it. For Claude Code:
+
+```
+claude mcp add munim -- uv run --directory /path/to/Munim munim-mcp
+```
+
+For clients configured with JSON (Claude Desktop, VS Code and others):
+
+```json
+{
+  "mcpServers": {
+    "munim": {
+      "command": "uv",
+      "args": ["run", "--directory", "/path/to/Munim", "munim-mcp"]
+    }
+  }
+}
+```
+
 ## Design
 
 The interface is built around the challan book: white, pink and yellow sheets by paper type, ballpoint corrections, a red pen for what failed, and a rubber stamp when you confirm. `DESIGN.md` is the contract, enforced by `scripts/design_lint.py` and `scripts/check_contrast.py`.

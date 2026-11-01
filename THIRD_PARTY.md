@@ -18,6 +18,7 @@ Maintained by hand and checked by `scripts/check_licences.py`. Versions come fro
 | httpx | 0.28.1 | BSD-3 | HTTP client | No |
 | ollama (python client) | 0.6.3 | MIT | Provider | No |
 | google-genai (optional) | optional extra, not locked | Apache-2.0 | Hosted provider | No |
+| MCP Python SDK (`mcp`) and its dependencies | 2.3.0 (see `uv.lock`) | MIT | `munim-mcp` server only; not in the web app or the Vercel bundle | No |
 | structlog | 26.1.0 | MIT / Apache-2.0 | Logging | No |
 | PyYAML | 6.0.3 | MIT | Rule files | No |
 | python-ulid | 4.0.1 | MIT | IDs | No |

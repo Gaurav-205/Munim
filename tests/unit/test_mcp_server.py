@@ -1,109 +1,212 @@
-"""Tests for the Munim MCP server."""
+"""The MCP server, driven through the official MCP SDK client (docs/TASKS.md T6.6).
 
+Each tool must give the same answer as the munim_core rule it wraps, so the expected values
+below are the golden numbers of docs/DOMAIN_RULES.md, not new ones.
+"""
+
+from __future__ import annotations
+
+import asyncio
 import json
+import sys
+from typing import Any
 
-from munim_mcp.server import (
-    handle_calculate_msmed_interest,
-    handle_request,
-    handle_verify_gstin,
-    handle_verify_invoice_math,
-)
+import pytest
+from mcp import Client, StdioServerParameters
+
+from munim_mcp.server import server
+from tests.ref_gstin import check_character
+
+pytestmark = pytest.mark.unit
+
+DEMO_RATE = [{"effective_from": "2000-01-01", "percent": "5.75"}]
 
 
-def test_mcp_initialize() -> None:
-    req = {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "initialize",
-        "params": {
-            "protocolVersion": "2024-11-05",
-            "clientInfo": {"name": "test-client", "version": "1.0"},
+async def _call(name: str, arguments: dict[str, Any]) -> tuple[bool, Any]:
+    async with Client(server) as client:
+        result = await client.call_tool(name, arguments)
+    text = result.content[0].text  # type: ignore[union-attr]
+    if result.is_error:
+        return True, text
+    return False, json.loads(text)
+
+
+def call(name: str, arguments: dict[str, Any]) -> Any:
+    is_error, value = asyncio.run(_call(name, arguments))
+    assert not is_error, value
+    return value
+
+
+def call_error(name: str, arguments: dict[str, Any]) -> str:
+    is_error, value = asyncio.run(_call(name, arguments))
+    assert is_error, value
+    return str(value)
+
+
+def test_lists_the_four_tools_from_the_architecture() -> None:
+    async def names() -> set[str]:
+        async with Client(server) as client:
+            return {t.name for t in (await client.list_tools()).tools}
+
+    assert asyncio.run(names()) == {
+        "check_gstin",
+        "check_invoice_arithmetic",
+        "compute_msmed_interest",
+        "list_rules",
+    }
+
+
+def test_gstin_passes_and_fails_like_the_core() -> None:
+    body = "27AAPFU0939F1Z"  # synthetic
+    good = body + check_character(body)
+    out = call("check_gstin", {"gstin": good})
+    assert out["ok"] is True
+    assert out["state_code"] == "27"
+    bad = good[:-1] + ("0" if good[-1] != "0" else "1")
+    out = call("check_gstin", {"gstin": bad})
+    assert out["ok"] is False
+    assert "GSTIN-CHECKSUM" in out["errors"]
+
+
+def test_invoice_total_with_round_off_passes() -> None:
+    out = call(
+        "check_invoice_arithmetic",
+        {
+            "taxable_total": "1,00,000.00",
+            "cgst": "9,000.00",
+            "sgst": "9,000.00",
+            "igst": "0",
+            "round_off": "-0.40",
+            "invoice_total": "1,17,999.60",
         },
-    }
-    resp = handle_request(req)
-    assert resp["jsonrpc"] == "2.0"
-    assert resp["id"] == 1
-    assert "result" in resp
-    assert resp["result"]["serverInfo"]["name"] == "munim-mcp"
-    assert "tools" in resp["result"]["capabilities"]
-
-
-def test_mcp_tools_list() -> None:
-    req = {
-        "jsonrpc": "2.0",
-        "id": 2,
-        "method": "tools/list",
-        "params": {},
-    }
-    resp = handle_request(req)
-    assert resp["id"] == 2
-    tools = resp["result"]["tools"]
-    tool_names = [t["name"] for t in tools]
-    assert "calculate_msmed_interest" in tool_names
-    assert "verify_gstin" in tool_names
-    assert "verify_invoice_math" in tool_names
-
-
-def test_mcp_verify_gstin_valid() -> None:
-    # 27AAPFU0939F1ZV is a valid GSTIN
-    res = handle_verify_gstin({"gstin": "27AAPFU0939F1ZV"})
-    data = json.loads(res["content"][0]["text"])
-    assert data["ok"] is True
-    assert data["state_code"] == "27"
-    assert data["pan"] == "AAPFU0939F"
-    assert data["errors"] == []
-
-
-def test_mcp_verify_gstin_invalid_checksum() -> None:
-    # Mutate last character
-    res = handle_verify_gstin({"gstin": "27AAPFU0939F1ZA"})
-    data = json.loads(res["content"][0]["text"])
-    assert data["ok"] is False
-    assert "GSTIN-CHECKSUM" in data["errors"]
-
-
-def test_mcp_verify_invoice_math() -> None:
-    # Taxable 1000.00 (100000 paise), CGST/SGST 90.00 each, Total 1180.00 (118000 paise)
-    res = handle_verify_invoice_math(
-        {
-            "taxable_paise": 100000,
-            "cgst_paise": 9000,
-            "sgst_paise": 9000,
-            "igst_paise": 0,
-            "total_paise": 118000,
-        }
     )
-    data = json.loads(res["content"][0]["text"])
-    assert data["ok"] is True
-    assert data["difference_paise"] == 0
+    assert out["rule_id"] == "INV-TOTAL"
+    assert out["status"] == "passed"
 
-    # Discrepancy
-    res_bad = handle_verify_invoice_math(
-        {
-            "taxable_paise": 100000,
-            "cgst_paise": 9000,
-            "sgst_paise": 9000,
-            "igst_paise": 0,
-            "total_paise": 120000,  # 20 rupees extra claimed
-        }
+
+def test_invoice_total_without_round_off_allows_one_rupee() -> None:
+    # DOMAIN_RULES INV-TOTAL: no round-off line printed, the sum may differ by up to 1.00.
+    args = {"taxable_total": "1000.00", "cgst": "90.00", "sgst": "90.00", "igst": "0"}
+    assert call("check_invoice_arithmetic", {**args, "invoice_total": "1181.00"})["status"] == (
+        "passed"
     )
-    data_bad = json.loads(res_bad["content"][0]["text"])
-    assert data_bad["ok"] is False
-    assert data_bad["difference_paise"] == -2000
+    out = call("check_invoice_arithmetic", {**args, "invoice_total": "1181.01"})
+    assert out["status"] == "failed"
+    assert out["params"] == {"computed_paise": "118000", "printed_paise": "118101"}
 
 
-def test_mcp_calculate_interest() -> None:
-    res = handle_calculate_msmed_interest(
+def test_invoice_total_refuses_a_round_off_of_a_rupee_or_more() -> None:
+    out = call(
+        "check_invoice_arithmetic",
         {
-            "principal_paise": 100_000_00,  # ₹1,00,000
-            "acceptance_date": "2024-01-01",
+            "taxable_total": "1000.00",
+            "cgst": "0",
+            "sgst": "0",
+            "igst": "180.00",
+            "round_off": "1.00",
+            "invoice_total": "1181.00",
+        },
+    )
+    assert out["status"] == "failed"
+
+
+def test_unreadable_amount_is_skipped_not_guessed() -> None:
+    out = call(
+        "check_invoice_arithmetic",
+        {"taxable_total": "abc", "cgst": "0", "sgst": "0", "igst": "0", "invoice_total": "1"},
+    )
+    assert out["status"] == "skipped"
+
+
+def test_interest_matches_the_golden_demo_case() -> None:
+    out = call(
+        "compute_msmed_interest",
+        {
+            "principal_paise": 50_000_000,
+            "acceptance_date": "2026-03-20",
+            "agreement": "written",
+            "credit_days": 30,
+            "as_on": "2026-10-13",
+            "bank_rates": DEMO_RATE,
+        },
+    )
+    assert out["due_date"] == "2026-04-19"
+    assert out["days_late"] == 177
+    assert out["interest_paise"] == 4_290_370
+    assert out["total_paise"] == 54_290_370
+    assert out["interest_formatted"] == "₹42,903.70"
+    assert out["cap_applied"] is False
+
+
+def test_interest_needs_a_bank_rate_from_the_caller() -> None:
+    args = {
+        "principal_paise": 100,
+        "acceptance_date": "2026-03-20",
+        "agreement": "none",
+        "as_on": "2026-10-13",
+    }
+    call_error("compute_msmed_interest", args)
+    assert "Bank Rate" in call_error("compute_msmed_interest", {**args, "bank_rates": []})
+
+
+def test_interest_refuses_a_written_agreement_without_days() -> None:
+    call_error(
+        "compute_msmed_interest",
+        {
+            "principal_paise": 100,
+            "acceptance_date": "2026-03-20",
+            "agreement": "written",
+            "as_on": "2026-10-13",
+            "bank_rates": DEMO_RATE,
+        },
+    )
+
+
+def test_interest_refuses_float_money() -> None:
+    call_error(
+        "compute_msmed_interest",
+        {
+            "principal_paise": 100.5,
+            "acceptance_date": "2026-03-20",
             "agreement": "none",
-            "as_on": "2024-04-01",
-            "bank_rate_percent": "6.75",
-        }
+            "as_on": "2026-10-13",
+            "bank_rates": DEMO_RATE,
+        },
     )
-    data = json.loads(res["content"][0]["text"])
-    assert data["due_date"] == "2024-01-16"
-    assert data["days_late"] > 70
-    assert data["interest_paise"] > 0
-    assert "₹" in data["interest_formatted"]
+
+
+def test_list_rules_is_the_core_catalogue() -> None:
+    from munim_core.verify.catalog import RULES
+
+    rules = call("list_rules", {})["rules"]
+    assert [r["rule_id"] for r in rules] == list(RULES)
+    assert {"rule_id": "INV-TOTAL", "version": "1.0", "family": "invoice"}.items() <= next(
+        r for r in rules if r["rule_id"] == "INV-TOTAL"
+    ).items()
+
+
+def test_stdio_subprocess_round_trip() -> None:
+    """The installed entry point speaks MCP over stdio to a real SDK client."""
+
+    async def run() -> Any:
+        params = StdioServerParameters(command=sys.executable, args=["-m", "munim_mcp.server"])
+        async with Client(params) as client:
+            result = await client.call_tool("check_gstin", {"gstin": "not a gstin"})
+            return json.loads(result.content[0].text)  # type: ignore[union-attr]
+
+    assert asyncio.run(run())["ok"] is False
+
+
+@pytest.mark.parametrize("percent", ["abc", "NaN", "-1", "Infinity"])
+def test_interest_refuses_a_rate_that_is_not_a_percent(percent: str) -> None:
+    message = call_error(
+        "compute_msmed_interest",
+        {
+            "principal_paise": 100,
+            "acceptance_date": "2026-03-20",
+            "agreement": "none",
+            "as_on": "2026-10-13",
+            "bank_rates": [{"effective_from": "2000-01-01", "percent": percent}],
+        },
+    )
+    assert "Bank Rate percent" in message

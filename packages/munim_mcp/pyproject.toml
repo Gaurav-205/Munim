@@ -5,6 +5,7 @@ description = "Optional MCP server exposing Munim's pure checks (stretch)."
 requires-python = ">=3.12,<3.13"
 license = "Apache-2.0"
 dependencies = [
+    "mcp>=2.3,<3",
     "munim-core",
 ]
 
