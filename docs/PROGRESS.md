@@ -201,4 +201,11 @@ Commit `f25d567` (2026-10-12 23:49:30 +0530, "docs: add Munim planning pack prep
 - Not run: Firefox (cannot launch in this sandbox; CI runs it), production deploy, GitNexus (not installed; callers checked by text search).
 - Open: `make eval` regenerates `eval/reports/replay.json` with wrong-and-passed 11 instead of the committed 13 (rule changes before this branch, not the UI). Report left as committed; needs a decision.
 
+### 2026-11-01 Picked up after new session: next task T6.9
+- T6.9 cannot be done here: `ollama` is not installed (`ollama not found`) and it needs real papers. Smallest alternative taken: 952d026 adds `run_eval.py --real` (promised by AI_SPEC, missing) and `docs/EVAL_REAL.md` marked "not run yet". T6.9 stays open.
+- 9935c3f: discrepancy line notes moved from English core strings to i18n keys; stamp notes removed; `/evaluation` shows field labels. Test `test_discrepancy_page_in_hindi_has_no_english_notes` failed first, then passed.
+- d55f14b: decision on the open replay.json question: regenerated, because the report must match the code. Same 26 wrong values; caught 13 to 15, wrong and passed 13 to 11 of 660. README and SUBMISSION updated.
+- Evidence: `make check` exit 0 (1039 passed; core 97.86%/94.82%, overall 92.58%). `pytest -m "e2e or a11y" --browser chromium`: 17 passed. `make eval`: validate_report 0 problems.
+- Not run: Firefox (CI only), GitNexus (not installed; callers checked by text search), push or deploy (owner).
+
 STATUS: READY FOR RELEASE (v0.1.0)
