@@ -267,7 +267,7 @@ Signature: ____________________
 | land.cta.how | See how it works | देखें यह कैसे काम करता है |
 | land.cta.source | See the source code | सोर्स कोड देखें |
 | land.sample | Sample papers, made-up names. | नमूना कागज़, नाम काल्पनिक। |
-| land.sample.note | Re-read from the marked box. GSTIN checksum now passes. | चिह्नित बॉक्स से दोबारा पढ़ा गया। जीएसटीआईएन चेकसम अब पास है। |
+| land.sample.note | Re-read from the marked box. It now matches the purchase order. | चिह्नित बॉक्स से दोबारा पढ़ा गया। अब यह खरीद आदेश से मेल खाता है। |
 | land.sample.late | {days} days late, {interest} interest | {days} दिन की देरी, {interest} ब्याज |
 | land.how.title | From a pile of papers to an evidence file | कागज़ों के ढेर से सबूत की फ़ाइल तक |
 | land.how.lede | Gemma reads the papers. Munim's own code decides every check and every number. | जेम्मा कागज़ पढ़ता है। हर जाँच और हर संख्या मुनीम का अपना कोड तय करता है। |

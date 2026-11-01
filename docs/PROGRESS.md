@@ -197,6 +197,7 @@ Commit `f25d567` (2026-10-12 23:49:30 +0530, "docs: add Munim planning pack prep
 - design-reviewer: 5 high, 8 medium, 4 low. All fixed except: English core notes on the Hindi discrepancy page and raw values on `/evaluation` (landing copy now says the Hindi is a draft; core still holds these strings), and the printed invoice total with no rupee sign, kept because it is the value as read.
 - A flake appeared once (status stuck, 20s): polling swaps are now excluded from view transitions and `::view-transition` takes no pointer events. Three browser runs clean after that.
 - Evidence: `make check` exit 0 (1036 passed; core 97.80%/94.56%, overall 92.56%). `pytest -m "e2e or a11y" --browser chromium`: 17 passed, three runs. Browser journey with `demo_papers` set: amount ₹5,40,976.71, stamp shown, no console errors. `make eval`: validate_report 0 problems. `make screens`: 30 screenshots.
+- `check_repo_files` R3 refused a GSTIN-shaped sample on the landing page once it was tracked, so 0ee6962 failed `make check` until the next commit. The drawn sample now corrects a PO number (rule X-PO-REF); the guard was not changed.
 - Not run: Firefox (cannot launch in this sandbox; CI runs it), production deploy, GitNexus (not installed; callers checked by text search).
 - Open: `make eval` regenerates `eval/reports/replay.json` with wrong-and-passed 11 instead of the committed 13 (rule changes before this branch, not the UI). Report left as committed; needs a decision.
 

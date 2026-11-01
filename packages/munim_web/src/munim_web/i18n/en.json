@@ -460,7 +460,7 @@
   "land.cta.how": "See how it works",
   "land.cta.source": "See the source code",
   "land.sample": "Sample papers, made-up names.",
-  "land.sample.note": "Re-read from the marked box. GSTIN checksum now passes.",
+  "land.sample.note": "Re-read from the marked box. It now matches the purchase order.",
   "land.sample.late": "{days} days late, {interest} interest",
   "land.how.title": "From a pile of papers to an evidence file",
   "land.how.lede": "Gemma reads the papers. Munim's own code decides every check and every number.",
