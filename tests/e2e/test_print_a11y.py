@@ -55,6 +55,35 @@ def test_printed_evidence_file_is_a4_with_the_stamp_and_amount(
     assert "5,40,976.71" in text
 
 
+@pytest.mark.e2e
+@pytest.mark.parametrize("path", ["dossier", "working"])
+def test_printed_tables_fit_the_a4_width(page: Page, server: str, path: str) -> None:
+    case_id = confirmed_case(page, server)
+    page.goto(f"{server}/cases/{case_id}/{path}")
+    page.emulate_media(media="print")
+    page.set_viewport_size({"width": 658, "height": 900})  # 174mm of A4 content
+    # A clipped column still extracts as PDF text, so measure the layout instead.
+    clipped = page.evaluate(
+        """[...document.querySelectorAll('.table-wrap')]
+        .filter(w => w.querySelector('table').offsetWidth > 658
+          || w.scrollWidth > w.clientWidth + 1)
+        .map(w => w.querySelector('table').offsetWidth)"""
+    )
+    assert clipped == []
+
+
+@pytest.mark.e2e
+def test_long_case_name_does_not_scroll_sideways_on_a_phone(page: Page, server: str) -> None:
+    page.set_viewport_size({"width": 360, "height": 800})
+    page.goto(f"{server}/cases/new")
+    page.get_by_label("Case name").fill("Hindustan-Electromechanicals-Consolidated-Private")
+    page.get_by_label("Supplier (you)").fill("Sample Fabricators Pvt Ltd")
+    page.get_by_label("Buyer").fill("Demo Textiles Ltd")
+    page.get_by_role("button", name="New case").click()
+    expect(page.get_by_role("heading", level=1, name="Hindustan-")).to_be_visible()
+    assert page.evaluate("document.documentElement.scrollWidth") <= 360
+
+
 @pytest.mark.a11y
 @pytest.mark.parametrize("lang", ["en", "hi"])
 def test_pages_have_no_serious_accessibility_violations(page: Page, server: str, lang: str) -> None:

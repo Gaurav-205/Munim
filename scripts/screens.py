@@ -105,7 +105,9 @@ def main() -> int:
                     for name, path in pages.items():
                         page.goto(url + path)
                         page.evaluate("document.fonts.ready")
-                        page.screenshot(path=str(OUT / f"{name}-{width}-{lang}.png"))
+                        page.screenshot(
+                            path=str(OUT / f"{name}-{width}-{lang}.png"), full_page=True
+                        )
                         count += 1
             browser.close()
         server.should_exit = True

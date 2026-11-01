@@ -208,4 +208,11 @@ Commit `f25d567` (2026-10-12 23:49:30 +0530, "docs: add Munim planning pack prep
 - Evidence: `make check` exit 0 (1039 passed; core 97.86%/94.82%, overall 92.58%). `pytest -m "e2e or a11y" --browser chromium`: 17 passed. `make eval`: validate_report 0 problems.
 - Not run: Firefox (CI only), GitNexus (not installed; callers checked by text search), push or deploy (owner).
 
+### 2026-11-02 VoiceBox restyle (design system v3)
+- Owner pasted the VoiceBox design system. Branch `feat/voicebox`, cut from `feat/redesign`, not pushed. b0f689a: DESIGN.md v3, tokens, Archivo Black, Work Sans and Space Mono vendored (@fontsource 5.1.0), Inter removed, design lint now requires square corners and allows capitals on label styles.
+- Departures from VoiceBox, on purpose: colours that fail check_contrast take the nearest passing shade (`#EF4444` stays for rules only; red text is `#B91C1C`, red hover `#DC2626`, muted `#525252`, input edge `#737373`, tick `#15803D`); red-pen failures and carbon sheet colours stay, so red can appear more than once per view; Hindi display text is Mukta 600; Work Sans 900 draws the rupee sign, which Archivo Black lacks.
+- design-reviewer: 5 high, 11 medium, 3 low. All high and medium fixed, 2 of 3 low fixed plus the landing stamp. Worst: printing the evidence file and working page clipped the interest and closing columns. New tests `test_printed_tables_fit_the_a4_width` and `test_long_case_name_does_not_scroll_sideways_on_a_phone` failed first, then passed.
+- Evidence: `make check` exit 0 (1044 passed; core 98.01%/95.08%, overall 92.63%; design_lint 0 problems; check_contrast 30 pairs, 0 problems). `pytest -m "e2e or a11y" --browser chromium`: 20 passed. `make screens`: 30 full-page screenshots.
+- Not run: Firefox (CI only), GitNexus (not installed; callers checked by text search), push or deploy. The print fix was checked by measuring layout at A4 width and running the PDF test; the printed pages were not viewed after the fix. Hindi strings added here are a draft.
+
 STATUS: READY FOR RELEASE (v0.1.0)

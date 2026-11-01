@@ -231,8 +231,8 @@
       <label class="choice"><input type="radio" name="agreement" value="none" {% if case.agreement == "none" %}checked{% endif %}> {{ t("settings.case.agreement.none") }}</label>
     </fieldset>
     {{ field("credit_days", t("settings.case.credit_days"), "credit_days", case.credit_days, help=t("settings.case.credit_days.help"), inputmode="numeric") }}
-    {{ field("acceptance_date", t("settings.case.acceptance"), "acceptance_date", t.date(case.acceptance_date) if case.acceptance_date else "", help=t("settings.case.date.help")) }}
-    {{ field("objection_removed_on", t("settings.case.objection"), "objection_removed_on", t.date(case.objection_removed_on) if case.objection_removed_on else "", help=t("settings.case.date.help")) }}
+    {{ field("acceptance_date", t("settings.case.acceptance"), "acceptance_date", t.date(case.acceptance_date) if case.acceptance_date else "", help=t("settings.case.acceptance.help")) }}
+    {{ field("objection_removed_on", t("settings.case.objection"), "objection_removed_on", t.date(case.objection_removed_on) if case.objection_removed_on else "", help=t("settings.case.objection.help")) }}
     {{ field("as_on_date", t("settings.case.as_on"), "as_on_date", t.date(case.as_on_date) if case.as_on_date else "", help=t("settings.case.as_on.help")) }}
     <div class="field">
       <label for="interest_base">{{ t("settings.case.base") }}</label>

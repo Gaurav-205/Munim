@@ -13,6 +13,7 @@ description: >
 colors:
   bond: "#FAFAFA"            # page canvas
   sheet: "#FAFAFA"           # cards, tables, forms, and white text on black or red
+  surface: "#F5F5F5"         # table headers, quiet cards, drop areas, hover
   ink: "#0A0A0A"             # primary text
   ink-2: "#525252"           # secondary text
   muted: "#525252"           # captions, helper text
@@ -102,6 +103,7 @@ VoiceBox's listed hex values are used wherever they meet the 4.5:1 text and 3:1 
 | --- | --- | --- | --- |
 | `bond` | `#FAFAFA` | Page canvas | Text on it must be `ink`, `ink-2` or `muted`. |
 | `sheet` | `#FAFAFA` | Cards, tables, forms | Controls sit only on `sheet`. |
+| `surface` | `#F5F5F5` | Table headers, quiet cards, drop areas, hover | Text on it must be `ink`, `ink-2` or `muted`. |
 | `ink` | `#0A0A0A` | Primary text | 19.0:1 on bond, 19.0:1 on sheet |
 | `ink-2` | `#525252` | Secondary text | 7.5:1 on bond |
 | `muted` | `#525252` | Captions, helper text | 7.5:1 on bond, 7.5:1 on sheet |

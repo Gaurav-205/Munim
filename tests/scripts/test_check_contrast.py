@@ -65,9 +65,9 @@ def test_real_design_md_has_the_known_ratios_and_passes() -> None:
     assert "FAIL" not in out
     assert out.rstrip().endswith("problems")
     assert ", 0 problems" in out.splitlines()[-1]
-    # Every note form of the real table is read: 27 pairs, including "White text on it
+    # Every note form of the real table is read: 30 pairs, including "White text on it
     # 4.6:1" (sheet on ballpoint-pressed) and "Text on it is `ink`".
-    assert out.splitlines()[-1] == "check_contrast: 27 pairs checked, 0 problems"
+    assert out.splitlines()[-1] == "check_contrast: 30 pairs checked, 0 problems"
     assert "sheet on ballpoint-pressed: 4.63 (threshold 4.5, claimed 4.6) ok" in out
     assert "ink on carbon-pink: 13.24 (threshold 4.5, claimed none) ok" in out
 

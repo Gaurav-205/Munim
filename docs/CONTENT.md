@@ -112,7 +112,11 @@ Glossary used consistently:
 | stamp.word | CHECKED | जाँचा गया |
 | evidence.open | Open evidence file | सबूत की फ़ाइल खोलें |
 | evidence.print | Print | प्रिंट करें |
-| evidence.export | Download ZIP (photos, values, evidence file) | ZIP डाउनलोड करें (फ़ोटो, वैल्यू, सबूत फ़ाइल) |
+| evidence.export | Download ZIP | ZIP डाउनलोड करें |
+| settings.case.acceptance.help | Leave empty to use the challan date. Write the date as `DD/MM/YYYY`. | चालान की तारीख लेने के लिए खाली छोड़ें। तारीख `DD/MM/YYYY` के रूप में लिखें। |
+| settings.case.objection.help | Only if a written objection was raised. Write the date as `DD/MM/YYYY`. | सिर्फ़ तब, जब लिखित आपत्ति हुई हो। तारीख `DD/MM/YYYY` के रूप में लिखें। |
+| settings.case.acceptance | Date goods accepted | माल स्वीकार होने की तारीख |
+| settings.case.objection | Objection removed on | आपत्ति हटने की तारीख |
 | evidence.title | Evidence file | सबूत की फ़ाइल |
 | evidence.draft | Draft for review. Not legal advice. | समीक्षा के लिए मसौदा। यह कानूनी सलाह नहीं है। |
 | notice.copy | Copy notice text | नोटिस का पाठ कॉपी करें |

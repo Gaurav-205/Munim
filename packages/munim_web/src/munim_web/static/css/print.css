@@ -8,6 +8,11 @@ body { background: var(--color-sheet); display: block; }
 .d-page { border: 0; padding: 0; margin: 0; box-shadow: none; break-after: page; animation: none; }
 .d-page:last-child { break-after: auto; }
 .evidence tr, .working tr { break-inside: avoid; }
+/* Nothing may scroll on paper: a clipped column would hide the figures the file exists to prove. */
+.table-wrap { overflow: visible; }
+table.working td, table.working th { white-space: normal; padding: 4px; font-size: 9.5pt; }
+table.working .num { white-space: nowrap; }
+.evidence .crop { max-width: 100%; }
 /* An original fits on the page under its heading, with boxes still aligned to the photo. */
 .d-original .viewer-canvas { display: inline-block; width: auto; break-inside: avoid; }
 .d-original .viewer-canvas img { width: auto; height: auto; max-width: 100%; max-height: 225mm; }
