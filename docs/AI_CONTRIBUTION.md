@@ -18,7 +18,7 @@ Papers stay on the user's computer. The tool works without internet once the mod
 
 ## 4. How the model is measured
 
-`make eval` produces a report (see the Evaluation page and `docs/EVAL_REAL.md`). The most important number is "wrong and passed": how often the model's value is wrong and every automated check still accepts it. Live model evaluation on `gemma-4-26b-a4b-it` is recorded in `eval/reports/latest.json`: 17 of 17 required fields matched (100%), 10 of 10 amounts matched (100%), 10 of 10 identifiers matched (100%), and 1 of 58 fields wrong-and-passed (1.72%). The harness has also been run on hand-built recordings for 30 synthetic papers (`eval/reports/replay.json`); those numbers test the checks, not the model. Synthetic results do not predict real-world performance; the real-paper section describes what was tried locally without publishing the papers.
+`make eval` produces a report (see the Evaluation page and `docs/EVAL_REAL.md`). The most important number is "wrong and passed": how often the model's value is wrong and every automated check still accepts it. Live model evaluation on `gemma-4-26b-a4b-it` is recorded in `eval/reports/latest.json`: 17 of 17 required fields matched (100%), 10 of 10 amounts matched (100%), 10 of 10 identifiers matched (100%), and 1 of 58 fields wrong-and-passed (1.72%). The harness has also been run on hand-built recordings for 30 synthetic papers (`eval/reports/replay.json`); those numbers test the checks, not the model. Synthetic results do not predict real-world performance; the real-paper evaluation has not been run yet (`docs/EVAL_REAL.md`).
 
 ## 5. AI coding assistance used to build the project
 

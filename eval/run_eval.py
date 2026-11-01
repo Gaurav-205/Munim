@@ -2,6 +2,8 @@
 
 MUNIM_PROVIDER picks the reader (default replay over eval/fixtures/replay). A replay run writes
 eval/reports/replay.json; any other reader writes eval/reports/latest.json (PLAN_REVIEW D10).
+--real reads the git-ignored eval/real/ with a live reader and writes eval/real/report.json, because
+that report holds crops and values from real papers. Only aggregates go in docs/EVAL_REAL.md.
 Exit 0 when the report was written and no recording was missing, 1 otherwise, 2 on bad input.
 """
 
@@ -18,6 +20,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "eval" / "fixtures"
 REPORTS = ROOT / "eval" / "reports"
+REAL = ROOT / "eval" / "real"
+
+
+def report_path(provider: str, *, real: bool) -> Path:
+    if real:
+        return REAL / "report.json"
+    return REPORTS / ("replay.json" if provider == "replay" else "latest.json")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -32,8 +41,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--case", action="append", default=None, help="only these case ids")
     parser.add_argument("--repair-only", action="store_true", help="only the injected GSTIN cases")
     parser.add_argument("--no-repair", action="store_true")
+    parser.add_argument("--real", action="store_true", help="real papers in eval/real, live reader")
     args = parser.parse_args(argv)
     name = os.environ.get("MUNIM_PROVIDER", "replay")
+    if args.real:
+        if name == "replay":
+            print("run_eval: --real needs a live reader; set MUNIM_PROVIDER", file=sys.stderr)
+            return 2
+        args.fixtures = REAL
     if not (args.fixtures / "manifest.json").is_file():
         print(f"run_eval: no manifest in {args.fixtures}; run make fixtures", file=sys.stderr)
         return 2
@@ -59,7 +74,7 @@ def main(argv: list[str] | None = None) -> int:
             repair=not args.no_repair,
         )
     )
-    out = args.out or REPORTS / ("replay.json" if name == "replay" else "latest.json")
+    out = report_path(name, real=True) if args.real else args.out or report_path(name, real=False)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(report, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     wp = report["metrics"]["wrong_and_passed"]
