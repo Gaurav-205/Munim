@@ -9,18 +9,21 @@ Reads run one at a time (a semaphore) as asyncio tasks, and every state change i
 from __future__ import annotations
 
 import asyncio
+import dataclasses
 import hashlib
 import shutil
 import time
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
-from typing import Literal, cast
+from typing import Any, Literal, cast
 
 import structlog
 
 from munim_ai import imageprep
 from munim_ai.extract import extract_paper
+from munim_ai.normalize import ClaimDraft
 from munim_ai.prompts import extraction_prompt
 from munim_ai.providers import Provider, ProviderError, ReadContext, make_provider
 from munim_ai.repair import RepairOutcome, repair_field
@@ -39,6 +42,9 @@ EXTENSIONS = {"jpeg": "jpg", "png": "png", "webp": "webp", "heic": "heic", "pdf"
 AUTO_REPAIR = frozenset(
     {"supplier_gstin", "buyer_gstin", "invoice_total", "taxable_total", "igst", "cgst", "sgst"}
 )
+
+
+MASK_MARK = "XXXX XXXX "  # what munim_core.ids.mask_aadhaar leaves in a value
 
 
 class UploadError(Exception):
@@ -157,7 +163,18 @@ class PaperService:
         rotation = (int(paper["rotation"]) + degrees) % 360
         data = self.path(paper["original_path"]).read_bytes()
         prepared = await asyncio.to_thread(imageprep.prepare, data, rotation)
-        self.path(paper["derived_path"]).write_bytes(prepared.jpeg)
+        jpeg = prepared.jpeg
+        # The new derived image comes from the original: pixelate the Aadhaar boxes again.
+        boxes = [
+            imageprep.rotate_box(box, degrees)
+            for c in self.db.claims_for_case(paper["case_id"])
+            if c["paper_id"] == paper_id and MASK_MARK in (c["value_read"] or "")
+            for box in [(c["box_y1"], c["box_x1"], c["box_y2"], c["box_x2"])]
+            if None not in box
+        ]
+        if boxes:
+            jpeg = await asyncio.to_thread(imageprep.pixelate_boxes, jpeg, boxes)
+        self.path(paper["derived_path"]).write_bytes(jpeg)
         self.db.update_paper(
             paper_id,
             rotation=rotation,
@@ -198,6 +215,28 @@ class PaperService:
             {"field": name, "line_index": -1, "value_read": None, "value": None, "source": "user"}
             for name in PAPER_FIELDS[kind]
         ]
+
+    async def _blur_aadhaar(
+        self, case_id: str, paper: Any, drafts: Sequence[ClaimDraft], derived: bytes
+    ) -> None:
+        """Pixelate the boxes of values where an Aadhaar number was masked, in the derived image.
+
+        The original is kept untouched as evidence (docs/SECURITY_PRIVACY.md section 5).
+        """
+        masked = [d for d in drafts if d.masked]
+        if not masked:
+            return
+        boxes = [d.box for d in masked if d.box is not None]
+        if boxes:
+            blurred = await asyncio.to_thread(imageprep.pixelate_boxes, derived, boxes)
+            self.path(paper["derived_path"]).write_bytes(blurred)
+        self.db.event(
+            case_id,
+            "paper.aadhaar_blurred",
+            paper=paper["id"],
+            boxes=len(boxes),
+            without_box=len(masked) - len(boxes),
+        )
 
     async def read(self, paper_id: str) -> None:
         async with self._lock:
@@ -252,6 +291,8 @@ class PaperService:
                 }
                 for d in outcome.claims
             ]
+            # Blur first: if it fails, no claim points at an image that still shows the number.
+            await self._blur_aadhaar(case_id, paper, outcome.claims, derived)
             self.db.replace_claims(paper_id, rows)
             self.db.update_paper(paper_id, status="repairing", **meta)
             self.db.touch(case_id)
@@ -315,20 +356,18 @@ class PaperService:
 
         def still_failing(value: str) -> bool:
             # Re-run the rules with the proposed value and look at the rules that failed before.
-            from munim_core.verify.models import CaseState, ClaimValue, PaperState
+            from munim_core.verify.models import ClaimValue, PaperState
 
             state = snapshot.state
             current = state.papers[ref.paper_kind]
             fields = dict(current.fields)
             fields[ref.field] = ClaimValue(raw=claim["value_read"], text=value, source="repair")
-            changed = CaseState(
+            changed = dataclasses.replace(
+                state,
                 papers={
                     **state.papers,
                     ref.paper_kind: PaperState(current.kind, fields, current.lines),
                 },
-                as_on=state.as_on,
-                udyam_number=state.udyam_number,
-                extra=state.extra,
             )
             return any(
                 f.rule_id in failing_rules

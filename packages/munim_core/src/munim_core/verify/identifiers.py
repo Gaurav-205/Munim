@@ -1,8 +1,8 @@
-"""Identifier rules: GSTIN-*, PAN-FORMAT, UDYAM-FORMAT (docs/DOMAIN_RULES.md 3.1)."""
+"""Identifier rules: GSTIN-*, PAN-FORMAT, UDYAM-FORMAT, IFSC-KNOWN (docs/DOMAIN_RULES.md 3.1)."""
 
 from __future__ import annotations
 
-from munim_core.ids import check_gstin, check_pan, check_udyam
+from munim_core.ids import check_gstin, check_ifsc_format, check_pan, check_udyam, normalise_ifsc
 from munim_core.verify.common import field_text, finding, present_papers
 from munim_core.verify.models import CaseState, FieldRef, Finding, Status
 
@@ -49,8 +49,28 @@ def check(state: CaseState) -> list[Finding]:
                 field_text(invoice, "supplier_gstin"), field_text(invoice, "supplier_pan")
             )
         )
+        if "bank_ifsc" in invoice.fields:
+            out.append(_ifsc_finding(field_text(invoice, "bank_ifsc"), state.known_ifsc))
     out.append(_udyam_finding(state.udyam_number))
     return out
+
+
+def _ifsc_finding(text: str | None, known: frozenset[str] | None) -> Finding:
+    ref = (FieldRef("invoice", "bank_ifsc"),)
+    if text is None:
+        return finding("IFSC-KNOWN", Status.SKIPPED, ref)
+    code = normalise_ifsc(text)
+    params = {"printed": text}
+    if not check_ifsc_format(code):
+        return finding(
+            "IFSC-KNOWN", Status.FAILED, ref, params=params, message_key="rule.IFSC-KNOWN.format"
+        )
+    if known is None:
+        return finding("IFSC-KNOWN", Status.SKIPPED, ref)
+    if code in known:
+        return finding("IFSC-KNOWN", Status.PASSED, ref)
+    # The list may be out of date, so an unknown code is for a person to check, not a failure.
+    return finding("IFSC-KNOWN", Status.NEEDS_REVIEW, ref, params=params)
 
 
 def _pan_findings(gstin_text: str | None, pan_text: str | None) -> list[Finding]:

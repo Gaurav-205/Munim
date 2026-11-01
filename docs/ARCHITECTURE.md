@@ -256,6 +256,6 @@ Licence check: `scripts/check_licences.py` fails if any dependency's licence is 
 
 ## 13. Extension points (stretch)
 
-- `munim_mcp`: FastMCP server exposing `check_gstin`, `check_invoice_arithmetic`, `compute_msmed_interest`, `list_rules`, all calling `munim_core`. No document upload tool (privacy).
+- `munim_mcp`: MCP server (`mcp` 2.x `MCPServer`, formerly FastMCP) exposing `check_gstin`, `check_invoice_arithmetic`, `compute_msmed_interest`, `list_rules`, all calling `munim_core`. No document upload tool (privacy).
 - `skills/munim-checks/SKILL.md`: an Agent Skill that tells another agent when and how to call these tools, with name and description frontmatter per the Agent Skills spec.
 - New paper types: add a schema in `munim_ai/schemas`, prompts in `prompts/`, verify rules in core; documented in CONTRIBUTING.

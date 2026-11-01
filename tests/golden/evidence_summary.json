@@ -36,7 +36,7 @@
   "challan.vehicle_number = 'MH12 AB 0000' (model, no check)",
   "invoice.amount[0] = '3,00,000.00' (model, passed)",
   "invoice.amount[1] = '1,23,729.00' (model, passed)",
-  "invoice.bank_ifsc = 'SBIN0001234' (model, no check)",
+  "invoice.bank_ifsc = 'SBIN0001234' (model, passed)",
   "invoice.buyer_gstin = '27AAAPZ5678Z1Z1' (repair, passed)",
   "invoice.buyer_name = 'Demo Textiles Ltd' (model, passed)",
   "invoice.challan_reference = 'CH-0412' (model, no check)",

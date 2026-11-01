@@ -21,13 +21,14 @@ from munim_core.discrepancy import build_discrepancy_map
 from munim_core.money import MoneyParseError, parse_inr
 from munim_core.samadhaan import SamadhaanInput, build_samadhaan_packet
 from munim_core.stamp_forensics import analyze_challan_stamp
-from munim_core.tax_disallowance import compute_43b_disallowance
 from munim_core.text import whole_number
 from munim_core.verify.catalog import RULES
 from munim_core.verify.models import FieldRef
-from munim_web.db import Database
+from munim_web import __version__
+from munim_web.db import Database, now
 from munim_web.services import views
 from munim_web.services.case_service import CaseSnapshot, load_case, ref_key, ref_of
+from munim_web.services.export import build_zip
 from munim_web.services.notice import notice_text
 from munim_web.services.papers import PROVIDERS, PaperService, UploadError
 from munim_web.translate import LANGS, translator
@@ -142,6 +143,7 @@ def workbench_context(request: Request, snap: CaseSnapshot, paper_id: str | None
         "payments": snap.payments,
         "step_label": views.step_label,
         "upload_mb": request.app.state.settings.max_upload_bytes // (1024 * 1024),
+        "demo": request.app.state.settings.demo_papers is not None,
     }
     ctx.update(views.clock_context(snap, t))
     return ctx
@@ -241,6 +243,8 @@ async def upload(
     kind: Annotated[str, Form()] = "",
 ) -> Response:
     snapshot_or_404(request, case_id)
+    if request.app.state.settings.demo_papers is not None:
+        return back(f"/cases/{case_id}?error=paper.err.demo")
     if file is None or not file.filename:
         return back(f"/cases/{case_id}?error=paper.err.nofile")
     limit = request.app.state.settings.max_upload_bytes
@@ -252,6 +256,19 @@ async def upload(
     except UploadError as exc:
         return back(f"/cases/{case_id}?error={exc.message_key}")
     return back(f"/cases/{case_id}?paper={paper_id}")
+
+
+@router.post("/cases/{case_id}/samples")
+async def add_samples(request: Request, case_id: str) -> Response:
+    """Hosted demo only: add the bundled synthetic papers in place of an upload."""
+    folder = request.app.state.settings.demo_papers
+    if folder is None:
+        raise HTTPException(status_code=404, detail="error.notfound")
+    snapshot_or_404(request, case_id)
+    papers = papers_of(request)
+    for kind in KINDS:
+        await papers.add(case_id, kind, (folder / f"{kind}.jpg").read_bytes())
+    return back(f"/cases/{case_id}")
 
 
 def paper_or_404(request: Request, paper_id: str) -> Any:
@@ -434,6 +451,25 @@ async def working(request: Request, case_id: str) -> Response:
 @router.get("/cases/{case_id}/dossier", response_class=HTMLResponse)
 async def dossier(request: Request, case_id: str) -> Response:
     snap = snapshot_or_404(request, case_id)
+    db_of(request).event(case_id, "evidence.viewed")
+    return dossier_page(request, snap)
+
+
+@router.get("/cases/{case_id}/export.zip")
+async def export_zip(request: Request, case_id: str) -> Response:
+    snap = snapshot_or_404(request, case_id)
+    meta = {"app_version": __version__, "exported_at": now()}
+    evidence = bytes(dossier_page(request, snap).body)
+    data = build_zip(snap, papers_of(request), evidence, meta)
+    db_of(request).event(case_id, "export.downloaded", papers=len(snap.papers))
+    return Response(
+        data,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="munim-{case_id}.zip"'},
+    )
+
+
+def dossier_page(request: Request, snap: CaseSnapshot) -> HTMLResponse:
     lang = language(request)
     t = translator(lang, request.app.state.settings.dev)
     model = snap.dossier()
@@ -442,14 +478,6 @@ async def dossier(request: Request, case_id: str) -> Response:
         rows = views.rows_for(snap, paper["id"], t)
         papers.append({"paper": paper, "rows": rows})
     notices = {code: notice_text(snap, code, today(request)) for code in LANGS}
-    db_of(request).event(case_id, "evidence.viewed")
-    disallowance = None
-    if snap.clock.outcome and snap.clock.outcome.result and snap.clock.principal_paise:
-        disallowance = compute_43b_disallowance(
-            invoice_total_paise=snap.clock.principal_paise,
-            due_date=snap.clock.outcome.result.due_date,
-            as_on=snap.clock.as_on,
-        )
     return render(
         request,
         "dossier.html",
@@ -458,7 +486,6 @@ async def dossier(request: Request, case_id: str) -> Response:
         model=model,
         papers=papers,
         notices=notices,
-        disallowance=disallowance,
         step_label=views.step_label,
         **views.clock_context(snap, t),
     )

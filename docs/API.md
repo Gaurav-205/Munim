@@ -27,7 +27,8 @@ Server-rendered HTML plus a small JSON surface for the viewer and for programmat
 | POST | `/cases/{id}/payments` | Add a part-payment (date, amount) |
 | GET | `/cases/{id}/dossier` | Dossier (screen + print) |
 | GET | `/cases/{id}/notice?lang=en|hi` | Draft notice text |
-| GET | `/cases/{id}/export.zip` | Stretch: JSON + originals + dossier HTML |
+| GET | `/cases/{id}/export.zip` | ZIP: `case.json` (schema `munim-export/1`), `evidence.html`, photos (originals, or the redacted copy where an Aadhaar number was found) |
+| POST | `/cases/{id}/samples` | Hosted demo only (`demo_papers` set): add the bundled synthetic papers; elsewhere 404. On the demo, `POST /cases/{id}/papers` refuses files |
 | POST | `/cases/{id}/delete` | Delete case and all files (confirmation required in the UI) |
 | GET | `/rules` | Rule list from `rules/*.yaml` and bank-rate table |
 | POST | `/rules/bank-rate` | Add or confirm a bank-rate row |

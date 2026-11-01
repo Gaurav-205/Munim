@@ -36,8 +36,8 @@ No Ollama? `MUNIM_PROVIDER=replay make run` uses recorded responses on the bundl
 
 - Papers and what is read from them are stored in `./data` on your computer. **Delete case** removes the files and rows.
 - With the default reader nothing leaves your computer. The app makes no requests to any other site.
-- The hosted demo (`munim-demo.vercel.app`, from `api/index.py`) is different: it runs on Vercel's servers, reads only with recorded responses on the bundled synthetic papers, and anything you upload there is held on those servers in temporary storage. Use the demo with the synthetic papers only; run Munim on your own computer for real papers. To serve it under another domain, set `MUNIM_PUBLIC_HOST`.
-- Aadhaar-like numbers are masked in stored text. The photo itself is not redacted; please do not photograph Aadhaar cards.
+- The hosted demo (`munim-demo.vercel.app`, from `api/index.py`) is different: it runs on Vercel's servers, reads only with recorded responses, and it does not accept files: an "Add the sample papers" button puts the bundled synthetic papers into a case instead. Visitors share its temporary storage, so case titles and values you type there can be seen by others. Run Munim on your own computer for real papers. To serve it under another domain, set `MUNIM_PUBLIC_HOST`.
+- Aadhaar-like numbers are masked in stored text, and where the reader gave a box for the value, that part of the working copy of the photo is pixelated. The original photo you uploaded is kept unchanged as evidence, so please do not photograph Aadhaar cards.
 - Full threat model: `docs/SECURITY_PRIVACY.md`.
 
 ## How well does it read?
@@ -68,6 +68,29 @@ Synthetic results do not predict results on your papers. Real-paper testing, des
 - It does not cover Section 43B(h) of the Income-tax Act, e-filing, reminders or payments.
 - Hindi text is machine-drafted and **awaiting review by a native reader**.
 - No dark mode: the product is used in bright rooms and printed on paper.
+
+## Use the checks from an AI assistant (MCP)
+
+`munim-mcp` is a Model Context Protocol server (stdio) with four tools that call the same rules as the app: `check_gstin`, `check_invoice_arithmetic` (rule INV-TOTAL), `compute_msmed_interest` and `list_rules`. It takes typed values only; there is no tool to upload a document. `compute_msmed_interest` needs the Bank Rate table from you, because Munim does not assume a rate.
+
+After `make install`, point your client at it. For Claude Code:
+
+```
+claude mcp add munim -- uv run --directory /path/to/Munim munim-mcp
+```
+
+For clients configured with JSON (Claude Desktop, VS Code and others):
+
+```json
+{
+  "mcpServers": {
+    "munim": {
+      "command": "uv",
+      "args": ["run", "--directory", "/path/to/Munim", "munim-mcp"]
+    }
+  }
+}
+```
 
 ## Design
 

@@ -178,5 +178,15 @@ Commit `f25d567` (2026-10-12 23:49:30 +0530, "docs: add Munim planning pack prep
 - Evidence: `make check` exit 0 (971 passed; coverage core 97.91%/94.79%, overall 91.91%). `pytest -m "e2e or a11y" --browser chromium`: 10 passed. Firefox e2e cannot launch in this sandbox (`sandbox_extension_issue_file_to_process ... Operation not permitted`); GitHub CI runs it. `make eval`: validate_report 0 problems.
 - GitNexus is not installed (`.gitnexus/run.cjs` missing), so impact/detect-changes could not run; callers checked by text search.
 
-STATUS: READY FOR RELEASE (v0.1.0)
+### 2026-11-01 Stretch tasks T6.6 to T6.8
+- 1fcf03a T6.6: `munim_mcp` rebuilt on `mcp` 2.3.0 `MCPServer` with the tools named in ARCHITECTURE (check_gstin, check_invoice_arithmetic, compute_msmed_interest, list_rules). Fixed two disagreements with the rules: invoice math demanded exact equality (INV-TOTAL has tolerances), and interest assumed a 6.75% Bank Rate (now required from the caller). Tests through the SDK client in-process and over stdio; golden 4,290,370. `requirements.txt` now exported for munim-web only, so Vercel skips the SDK.
+- bcf6a6b T6.7: `skills/munim-checks/SKILL.md`; `skills-ref validate` runs in CI (blocked in the local sandbox); `tests/unit/test_skill.py` checks frontmatter and tool sync.
+- f89420c T6.8: `GET /cases/{id}/export.zip` (case.json `munim-export/1`, evidence.html, originals; in memory). IFSC-KNOWN on razorpay/ifsc v2.0.62 (`rules/ifsc.json`, 183,214 codes). Golden `evidence_summary.json` re-blessed after review: one line, bank_ifsc "no check" to "passed".
+- 966178f T6.8: Aadhaar boxes pixelated in `derived.jpg`; original untouched.
+- Evidence: `make check` exit 0 (1007 passed; core 97.94%/94.92%, overall 92.24%). `pytest -m "e2e or a11y" --browser chromium`: 10 passed. `make eval`: 0 problems.
+- Reviews: domain-verifier (no high; 1 medium, duplicate Bank Rate dates in MCP, fixed in f9ac655; every money figure matched its independent recomputation). security-reviewer (1 high, Aadhaar masking missed double spaces, line breaks and NBSP, existing before this branch; mediums on rotate and export; all fixed in b5a058f with tests that failed first). Open from review: on the hosted demo every visitor shares one /tmp database, so a case id gives another visitor's photos (already true of /papers/{id}/image), and a ZIP over 4.5 MB fails on Vercel.
+- After fixes: `make check` exit 0 (1022 passed; core 98.15%/95.43%, overall 92.64%); chromium e2e 10 passed; `make eval` 0 problems.
+- Not done: T6.9 needs real papers and a live model on the owner's machine.
+- Open question for the owner: the evidence file shows a Section 43B(h) verdict and an estimated tax at 25%/30% (added in v1.2), while PRD 49 and DOMAIN_RULES 211 exclude 43B(h) and README says it is not covered.
 
+STATUS: READY FOR RELEASE (v0.1.0)

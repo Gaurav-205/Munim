@@ -64,9 +64,9 @@
   version: "1.0"
   family: identifiers
   severity: warning
-  status: unverified
-  source: "Not implemented in v1 (needs the razorpay/ifsc dataset)"
-  checked_on: "2026-10-12"
+  status: assumed
+  source: "razorpay/ifsc v2.0.62 IFSC.json (MIT), released 2026-09-01; shape from RBI's 11-character format"
+  checked_on: "2026-11-01"
 - id: VALUE-FORMAT
   version: "1.0"
   family: invoice

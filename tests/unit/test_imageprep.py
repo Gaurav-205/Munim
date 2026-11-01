@@ -223,3 +223,62 @@ def test_quality_flags_corner_fold() -> None:
     q = imageprep.quality(imageprep.prepare(image_bytes(fold_img)).jpeg)
     assert q.corner_fold is True
     assert "paper.err.corner_fold" in q.guidance_keys
+
+
+def _stripes(width: int = 400, height: int = 200) -> bytes:
+    image = Image.new("RGB", (width, height), "white")
+    draw = ImageDraw.Draw(image)
+    for x in range(0, width, 4):  # fine detail everywhere, like print
+        draw.line([(x, 0), (x, height)], fill="black", width=2)
+    out = io.BytesIO()
+    image.save(out, format="JPEG", quality=95)
+    return out.getvalue()
+
+
+def _detail(image: Image.Image, area: tuple[int, int, int, int]) -> float:
+    """Mean absolute difference between horizontal neighbours: high for stripes, low if flat."""
+    region = image.crop(area).convert("L")
+    w, h = region.size
+    px = region.load()
+    total = sum(abs(px[x, y] - px[x + 1, y]) for y in range(h) for x in range(w - 1))
+    return total / (h * (w - 1))
+
+
+def test_pixelate_boxes_flattens_the_box_and_leaves_the_rest() -> None:
+    before = Image.open(io.BytesIO(_stripes()))
+    # Box on the 0-1000 grid: rows 250-750, columns 250-500 -> pixels x 100-200, y 50-150.
+    after = Image.open(io.BytesIO(imageprep.pixelate_boxes(_stripes(), [(250, 250, 750, 500)])))
+    assert after.size == before.size
+    inside = (110, 60, 190, 140)
+    outside = (300, 60, 390, 140)
+    assert _detail(before, inside) > 40
+    assert _detail(after, inside) < 0.2 * _detail(before, inside)
+    assert abs(_detail(after, outside) - _detail(before, outside)) < 10
+
+
+def test_pixelate_boxes_with_no_boxes_returns_the_same_bytes() -> None:
+    data = _stripes()
+    assert imageprep.pixelate_boxes(data, []) is data
+
+
+def test_rotate_box_follows_prepare_clockwise() -> None:
+    box = (100, 200, 300, 400)  # y1, x1, y2, x2
+    assert imageprep.rotate_box(box, 90) == (200, 700, 400, 900)
+    assert imageprep.rotate_box(box, 360) == box
+    turned = box
+    for _ in range(4):
+        turned = imageprep.rotate_box(turned, 90)
+    assert turned == box
+    # The same box, drawn black on white and turned by prepare(), lands where rotate_box says.
+    image = Image.new("RGB", (1000, 600), "white")
+    left, top, right, bottom = imageprep.to_pixels(box, 1000, 600)
+    ImageDraw.Draw(image).rectangle([left, top, right, bottom], fill="black")
+    out = io.BytesIO()
+    image.save(out, format="PNG")
+    for degrees in (90, 180, 270):
+        prepared = imageprep.prepare(out.getvalue(), degrees)
+        turned_img = Image.open(io.BytesIO(prepared.jpeg)).convert("L")
+        y1, x1, y2, x2 = imageprep.rotate_box(box, degrees)
+        cx = (x1 + x2) / 2000 * prepared.width
+        cy = (y1 + y2) / 2000 * prepared.height
+        assert turned_img.getpixel((int(cx), int(cy))) < 60, degrees

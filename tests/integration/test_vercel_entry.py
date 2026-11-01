@@ -97,3 +97,71 @@ def test_upload_limit_fits_vercel_body_cap(monkeypatch: pytest.MonkeyPatch, tmp_
         case = client.post("/cases", data=fields, follow_redirects=False)
         page = client.get(case.headers["location"] + "?error=paper.err.size")
     assert f"larger than {limit // (1024 * 1024)} MB" in page.text
+
+
+def _demo_client(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> tuple[ModuleType, TestClient]:
+    entry = _load_entry(monkeypatch, tmp_path)
+    return entry, TestClient(entry.app, base_url="https://munim-demo.vercel.app")
+
+
+def _new_case(client: TestClient) -> tuple[str, str]:
+    client.get("/")
+    token = str(client.cookies.get("munim_csrf_8765"))
+    fields = {"title": "t", "supplier_name": "s", "buyer_name": "b", "csrf_token": token}
+    case = client.post("/cases", data=fields, follow_redirects=False)
+    return case.headers["location"].split("/cases/")[1].split("?")[0], token
+
+
+def test_demo_refuses_visitor_uploads(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    # Visitors share one database on the hosted demo, so their own photos must never land there.
+    entry, client = _demo_client(monkeypatch, tmp_path)
+    with client:
+        case_id, token = _new_case(client)
+        photo = (ROOT / "eval/fixtures/demo/invoice.jpg").read_bytes()
+        r = client.post(
+            f"/cases/{case_id}/papers",
+            data={"kind": "invoice", "csrf_token": token},
+            files={"file": ("x.jpg", photo, "image/jpeg")},
+            follow_redirects=False,
+        )
+        assert r.status_code == 303
+        assert "error=paper.err.demo" in r.headers["location"]
+        assert entry.app.app.state.db.papers(case_id) == []
+        page = client.get(f"/cases/{case_id}").text
+        assert 'type="file"' not in page
+        assert f'action="/cases/{case_id}/samples"' in page
+
+
+def test_demo_adds_the_sample_papers_and_exports_under_the_vercel_cap(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    import hashlib
+
+    entry, client = _demo_client(monkeypatch, tmp_path)
+    with client:
+        case_id, token = _new_case(client)
+        r = client.post(
+            f"/cases/{case_id}/samples", data={"csrf_token": token}, follow_redirects=False
+        )
+        assert r.status_code == 303
+        papers = entry.app.app.state.db.papers(case_id)
+        assert {p["kind"]: p["sha256"] for p in papers} == {
+            kind: hashlib.sha256((ROOT / f"eval/fixtures/demo/{kind}.jpg").read_bytes()).hexdigest()
+            for kind in ("invoice", "challan", "po")
+        }
+        export = client.get(f"/cases/{case_id}/export.zip")
+        assert export.status_code == 200
+        assert len(export.content) < 4_500_000
+
+
+def test_samples_route_is_off_outside_the_demo(tmp_path: Path) -> None:
+    from munim_web.main import create_app
+    from munim_web.settings import Settings
+
+    app = create_app(Settings(data_dir=tmp_path, provider="replay"))
+    with TestClient(app, base_url="http://127.0.0.1:8765") as client:
+        case_id, token = _new_case(client)
+        r = client.post(
+            f"/cases/{case_id}/samples", data={"csrf_token": token}, follow_redirects=False
+        )
+        assert r.status_code == 404

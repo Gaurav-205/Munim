@@ -222,3 +222,17 @@ def test_reread_prompt_names_the_field_and_its_format_but_no_value() -> None:
 
 def test_strict_suffix_asks_for_json_only() -> None:
     assert "JSON" in strict_suffix()
+
+
+def test_drafts_mark_a_masked_aadhaar_so_its_box_can_be_blurred() -> None:
+    read = InvoiceRead.model_validate(
+        {
+            # synthetic test number, not a real Aadhaar
+            "supplier_name": {"value": "Ravi, Aadhaar 2345 6789 0124", "box_2d": [10, 20, 30, 40]},
+            "invoice_number": {"value": "SF/0412", "box_2d": [50, 60, 70, 80]},
+        }
+    )
+    drafts = {d.field: d for d in drafts_from_read("invoice", read)}
+    assert drafts["supplier_name"].masked is True
+    assert drafts["supplier_name"].value == "Ravi, Aadhaar XXXX XXXX 0124"
+    assert drafts["invoice_number"].masked is False

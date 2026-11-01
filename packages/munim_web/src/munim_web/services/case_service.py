@@ -144,7 +144,9 @@ def _ref_key(ref: FieldRef) -> str:
     return f"{ref.paper_kind}:{ref.field}:{'' if ref.index is None else ref.index}"
 
 
-def _state(case: sqlite3.Row, claims: list[sqlite3.Row], as_on: date) -> CaseState:
+def _state(
+    case: sqlite3.Row, claims: list[sqlite3.Row], as_on: date, known_ifsc: frozenset[str] | None
+) -> CaseState:
     papers: dict[str, dict[str, Any]] = {}
     for c in claims:
         paper = papers.setdefault(c["kind"], {"fields": {}, "lines": {}})
@@ -166,6 +168,7 @@ def _state(case: sqlite3.Row, claims: list[sqlite3.Row], as_on: date) -> CaseSta
         },
         as_on=as_on,
         udyam_number=case["udyam_number"],
+        known_ifsc=known_ifsc,
         extra={"acceptance_date": case["acceptance_date"] or ""},
     )
 
@@ -268,7 +271,7 @@ def load_case(db: Database, case_id: str, today: date) -> CaseSnapshot | None:
     papers = db.papers(case_id)
     claims = db.claims_for_case(case_id)
     as_on = date.fromisoformat(case["as_on_date"]) if case["as_on_date"] else today
-    state = _state(case, claims, as_on)
+    state = _state(case, claims, as_on, db.known_ifsc)
     findings = run_all(state, today)
     by_ref = {ref_of(c): c for c in claims}
     versions = {_ref_key(r): int(c["version"]) for r, c in by_ref.items()}

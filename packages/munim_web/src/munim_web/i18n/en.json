@@ -29,6 +29,9 @@
   "case.notfound": "This case doesn't exist. It may have been deleted.",
   "paper.add": "Add a paper",
   "paper.drop": "Drop a photo or PDF here, or choose a file.",
+  "paper.demo.help": "This public demo reads only its own sample papers, so nothing of yours is stored here. For your own papers, run Munim on your computer.",
+  "paper.demo.add": "Add the sample papers",
+  "paper.err.demo": "This public demo doesn't accept files. Add the sample papers, or run Munim on your computer for your own.",
   "paper.file": "Photo or PDF",
   "paper.upload": "Add this paper",
   "paper.kind": "What is this paper?",
@@ -114,6 +117,8 @@
   "rule.GSTIN-PAN": "The PAN inside the GSTIN ({pan_gstin}) differs from the PAN printed on the paper ({pan_paper}).",
   "rule.PAN-FORMAT": "A PAN is 10 characters: 5 letters, 4 digits and 1 letter.",
   "rule.UDYAM-FORMAT": "The Udyam number {printed} isn't in the form UDYAM-XX-00-0000000.",
+  "rule.IFSC-KNOWN": "The IFSC {printed} is not in Munim's bank list. The list may be out of date, so check the code with the bank.",
+  "rule.IFSC-KNOWN.format": "An IFSC is 11 characters: 4 letters, a zero, then 6 letters or digits. {printed} is not.",
   "rule.VALUE-FORMAT.amount": "{printed} can't be read as an amount. Enter the amount printed on the paper.",
   "rule.VALUE-FORMAT.date": "{printed} can't be read as a date. Enter the date printed on the paper.",
   "rule.VALUE-FORMAT.quantity": "{printed} can't be read as a quantity. Enter the number printed on the paper.",
@@ -278,6 +283,7 @@
   "stamp.label": "Stamp: checked on {on}",
   "evidence.open": "Open evidence file",
   "evidence.print": "Print",
+  "evidence.export": "Download ZIP (photos, values, evidence file)",
   "evidence.title": "Evidence file",
   "evidence.draft": "Draft for review. Not legal advice.",
   "evidence.summary": "Summary",
@@ -415,13 +421,5 @@
   "discrepancy.stamp_match": "Stamp matches Buyer entity",
   "discrepancy.stamp_self": "Stamp Warning: Matches Supplier (possible self-stamping error)",
   "discrepancy.stamp_unmatched": "Stamp Warning: Does not match Buyer name",
-  "discrepancy.stamp_none": "No stamp detected on Delivery Challan",
-  "tax.43b_title": "Income Tax Section 43B(h)",
-  "tax.43b_disallowed": "Disallowed Expense for {fy}",
-  "tax.43b_at_risk": "At Risk of Disallowance for {fy}",
-  "tax.43b_allowed": "Allowed in {fy}",
-  "tax.43b_impact_25": "Estimated tax addition at 25%: {amount}",
-  "tax.43b_impact_30": "Estimated tax addition at 30%: {amount}",
-  "tax.interest_non_deductible": "MSMED Act Section 23: Compound interest is non-deductible as business expense."
+  "discrepancy.stamp_none": "No stamp detected on Delivery Challan"
 }
-

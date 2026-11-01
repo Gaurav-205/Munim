@@ -48,7 +48,7 @@ All rules are pure functions in `munim_core.verify` returning `Finding(rule_id, 
 | `PAN-FORMAT` | PAN field | `stdnum.in_.pan.validate` | warning | |
 | `AADHAAR-MASK` | any text matching 12-digit Aadhaar pattern with Verhoeff checksum | Not a check: the value is masked to `XXXX XXXX 1234` on read and never stored or shown | n/a | Security rule |
 | `UDYAM-FORMAT` | Udyam number | Matches `UDYAM-XX-00-0000000` (state code letters, two digits, seven digits) | warning | Format only; Munim cannot verify the registration |
-| `IFSC-KNOWN` | bank IFSC | 4 letters + `0` + 6 alphanumerics, and present in bundled dataset | warning | Dataset from razorpay/ifsc (MIT); may be out of date; stretch |
+| `IFSC-KNOWN` | bank IFSC (no finding when the invoice has no IFSC field) | Spaces removed, upper-cased; the shape is checked first, so a wrong shape fails even with no list loaded. Wrong shape (4 letters + `0` + 6 alphanumerics) is `failed`; right shape and in the bundled list is `passed`; right shape but not in the list is `needs_review` ("check by hand"); no value or no list loaded is `skipped` | warning | List: razorpay/ifsc v2.0.62 `IFSC.json` (MIT, released 1 Sep 2026), bundled as `rules/ifsc.json`; may be out of date |
 | `GSTIN-LOOKALIKE` | any GSTIN changed by the look-alike repair | Always `needs_review` while the look-alike value stands unedited and unaccepted | blocking | A checksum can pass for a wrong string; the person must look at the paper |
 
 **GSTIN check-character algorithm** (verified against stdnum and three published vectors):

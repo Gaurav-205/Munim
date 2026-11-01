@@ -46,7 +46,7 @@ Munim handles photographs of business papers containing GSTINs, names, addresses
 
 ## 5. Personal identifiers
 
-- **Aadhaar**: if a 12-digit number passes the Verhoeff checksum, it is masked (`XXXX XXXX 1234`) at normalisation, before storage, logging or display. The raw image still contains it (we do not redact pixels in v1; the About page says this plainly and advises not to photograph Aadhaar cards). A stretch task blurs the detected box in the derived image.
+- **Aadhaar**: if a 12-digit number passes the Verhoeff checksum, it is masked (`XXXX XXXX 1234`) at normalisation, before storage, logging or display. When the reader returned a box for that value, the box (grown by 25% a side) is filled with one flat colour in the derived image, also after a rotation, the copy the app shows, crops and re-reads (`imageprep.pixelate_boxes`; event `paper.aadhaar_blurred` with counts only). The original upload is kept unchanged as evidence and still contains the number, as does any value the reader returned without a box; the README advises not to photograph Aadhaar cards.
 - **PAN / GSTIN / bank details**: stored because they are the point of the product; deletable.
 - No analytics, no cookies beyond CSRF and language.
 
@@ -56,7 +56,7 @@ Munim handles photographs of business papers containing GSTINs, names, addresses
 | --- | --- |
 | Delete paper | File, crops, claims, findings removed; event row "paper_deleted" keeps ids only |
 | Delete case | All of the above for the case; SQLite `VACUUM` then `PRAGMA wal_checkpoint(TRUNCATE)` run after deletion; `secure_delete` on. Pages carry `Cache-Control: no-store` so the browser cache keeps no copy |
-| Export | Writes a ZIP the user chooses; the app does not retain it |
+| Export | Writes a ZIP the user chooses; the app does not retain it. Photos are the originals, except a paper where an Aadhaar number was found: that one ships as the redacted working copy (`photo_is_original: false`) |
 | Uninstall | Delete the `data/` folder; README shows the command |
 
 ## 7. Repository hygiene
@@ -80,3 +80,7 @@ Munim handles photographs of business papers containing GSTINs, names, addresses
 3. Model misreads can pass checks (measured as "wrong and passed").
 4. The legal position on registration timing is unsettled.
 5. The Bank Rate table depends on the user confirming it.
+
+## 11. Hosted demo
+
+`api/index.py` runs a public copy on Vercel. All visitors share one temporary database, so it takes no files: `POST /cases/{id}/papers` is refused and `POST /cases/{id}/samples` adds the bundled synthetic papers instead (`Settings.demo_papers`). The reader is pinned to recorded responses, uploads are capped at 4 MB to stay under Vercel's 4.5 MB body limit, and only the deployment's own host names pass the Host check. Typed text (case titles, edits) is still visible to other visitors; the README says so.
