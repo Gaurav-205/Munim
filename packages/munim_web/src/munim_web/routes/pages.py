@@ -144,6 +144,7 @@ def workbench_context(request: Request, snap: CaseSnapshot, paper_id: str | None
         "payments": snap.payments,
         "step_label": views.step_label,
         "upload_mb": request.app.state.settings.max_upload_bytes // (1024 * 1024),
+        "demo": request.app.state.settings.demo_papers is not None,
     }
     ctx.update(views.clock_context(snap, t))
     return ctx
@@ -243,6 +244,8 @@ async def upload(
     kind: Annotated[str, Form()] = "",
 ) -> Response:
     snapshot_or_404(request, case_id)
+    if request.app.state.settings.demo_papers is not None:
+        return back(f"/cases/{case_id}?error=paper.err.demo")
     if file is None or not file.filename:
         return back(f"/cases/{case_id}?error=paper.err.nofile")
     limit = request.app.state.settings.max_upload_bytes
@@ -254,6 +257,19 @@ async def upload(
     except UploadError as exc:
         return back(f"/cases/{case_id}?error={exc.message_key}")
     return back(f"/cases/{case_id}?paper={paper_id}")
+
+
+@router.post("/cases/{case_id}/samples")
+async def add_samples(request: Request, case_id: str) -> Response:
+    """Hosted demo only: add the bundled synthetic papers in place of an upload."""
+    folder = request.app.state.settings.demo_papers
+    if folder is None:
+        raise HTTPException(status_code=404, detail="error.notfound")
+    snapshot_or_404(request, case_id)
+    papers = papers_of(request)
+    for kind in KINDS:
+        await papers.add(case_id, kind, (folder / f"{kind}.jpg").read_bytes())
+    return back(f"/cases/{case_id}")
 
 
 def paper_or_404(request: Request, paper_id: str) -> Any:

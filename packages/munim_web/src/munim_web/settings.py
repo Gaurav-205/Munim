@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     dev: bool = False
     max_upload_bytes: int = 15 * 1024 * 1024
     allowed_hosts: tuple[str, ...] = ()
+    # Hosted demo only: a folder of synthetic {invoice,challan,po}.jpg. When set, visitors cannot
+    # upload their own files (they would share one database) and add these papers instead.
+    demo_papers: Path | None = None
 
     @property
     def db_path(self) -> Path:

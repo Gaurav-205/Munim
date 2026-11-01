@@ -45,6 +45,9 @@ Glossary used consistently:
 | case.create | Create case | मामला बनाएँ |
 | paper.add | Add a paper | कागज़ जोड़ें |
 | paper.drop | Drop a photo or PDF here, or choose a file. | फ़ोटो या पीडीएफ़ यहाँ डालें, या फ़ाइल चुनें। |
+| paper.demo.help | This public demo reads only its own sample papers, so nothing of yours is stored here. For your own papers, run Munim on your computer. | यह सार्वजनिक डेमो सिर्फ़ अपने नमूना कागज़ पढ़ता है, इसलिए आपका कुछ भी यहाँ सेव नहीं होता। अपने कागज़ों के लिए मुनीम अपने कंप्यूटर पर चलाएँ। |
+| paper.demo.add | Add the sample papers | नमूना कागज़ जोड़ें |
+| paper.err.demo | This public demo doesn't accept files. Add the sample papers, or run Munim on your computer for your own. | यह सार्वजनिक डेमो फ़ाइलें नहीं लेता। नमूना कागज़ जोड़ें, या अपने कागज़ों के लिए मुनीम अपने कंप्यूटर पर चलाएँ। |
 | paper.kind | What is this paper? | यह कौन-सा कागज़ है? |
 | paper.kind.invoice | Tax invoice | टैक्स इनवॉइस |
 | paper.kind.challan | Delivery challan | डिलीवरी चालान |

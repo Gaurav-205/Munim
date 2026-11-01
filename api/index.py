@@ -58,6 +58,8 @@ settings = Settings(
     allowed_hosts=deploy_hosts(os.environ),
     # Vercel refuses request bodies over 4.5 MB with its own error page; stay under it.
     max_upload_bytes=4 * 1024 * 1024,
+    # Visitors share one /tmp database, so only the bundled synthetic papers are accepted.
+    demo_papers=ROOT / "eval" / "fixtures" / "demo",
 )
 
 app = create_app(settings)
