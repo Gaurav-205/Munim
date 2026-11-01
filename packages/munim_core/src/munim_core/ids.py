@@ -55,7 +55,10 @@ LOOKALIKE_PAIRS: tuple[tuple[str, str], ...] = (
 _LOOKALIKE = dict(LOOKALIKE_PAIRS) | {b: a for a, b in LOOKALIKE_PAIRS}
 
 _GSTIN_JUNK = re.compile(r"[\s\-]+")
-_AADHAAR = re.compile(r"(?<!\d)(\d{4})[ -]?(\d{4})[ -]?(\d{4})(?!\d)")
+# Groups may be split by any whitespace (a model can return double spaces, line breaks or NBSP)
+# or by "-", "." or "/", up to three characters; a wider net only masks more, never less.
+_AADHAAR_SEP = r"[\s\-./]{0,3}"
+_AADHAAR = re.compile(rf"(?<!\d)(\d{{4}}){_AADHAAR_SEP}(\d{{4}}){_AADHAAR_SEP}(\d{{4}})(?!\d)")
 _UDYAM = re.compile(r"^UDYAM-[A-Z]{2}-\d{2}-\d{7}$")
 _IFSC = re.compile(r"^[A-Z]{4}0[A-Z0-9]{6}$")
 

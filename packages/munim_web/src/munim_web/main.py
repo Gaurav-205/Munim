@@ -45,12 +45,15 @@ def create_app(settings: Settings | None = None) -> SecurityMiddleware:
     db = Database.open(settings.db_path)
     db.seed_bank_rates(settings.rules_dir)
     db.load_ifsc(settings.rules_dir)
+    remasked = db.remask_aadhaar()
     stuck = db.fail_stuck_reads()
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         if stuck:
             log.info("startup.failed_stuck_reads", count=stuck)
+        if remasked:
+            log.info("startup.remasked_aadhaar", count=remasked)
         yield
         await app.state.papers.wait_idle()
         db.close()

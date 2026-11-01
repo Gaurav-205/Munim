@@ -46,7 +46,7 @@ Munim handles photographs of business papers containing GSTINs, names, addresses
 
 ## 5. Personal identifiers
 
-- **Aadhaar**: if a 12-digit number passes the Verhoeff checksum, it is masked (`XXXX XXXX 1234`) at normalisation, before storage, logging or display. When the reader returned a box for that value, the box (grown by 8%) is pixelated in the derived image, the copy the app shows, crops and re-reads (`imageprep.pixelate_boxes`; event `paper.aadhaar_blurred` with counts only). The original upload is kept unchanged as evidence and still contains the number, as does any value the reader returned without a box; the README advises not to photograph Aadhaar cards.
+- **Aadhaar**: if a 12-digit number passes the Verhoeff checksum, it is masked (`XXXX XXXX 1234`) at normalisation, before storage, logging or display. When the reader returned a box for that value, the box (grown by 25% a side) is filled with one flat colour in the derived image, also after a rotation, the copy the app shows, crops and re-reads (`imageprep.pixelate_boxes`; event `paper.aadhaar_blurred` with counts only). The original upload is kept unchanged as evidence and still contains the number, as does any value the reader returned without a box; the README advises not to photograph Aadhaar cards.
 - **PAN / GSTIN / bank details**: stored because they are the point of the product; deletable.
 - No analytics, no cookies beyond CSRF and language.
 
@@ -56,7 +56,7 @@ Munim handles photographs of business papers containing GSTINs, names, addresses
 | --- | --- |
 | Delete paper | File, crops, claims, findings removed; event row "paper_deleted" keeps ids only |
 | Delete case | All of the above for the case; SQLite `VACUUM` then `PRAGMA wal_checkpoint(TRUNCATE)` run after deletion; `secure_delete` on. Pages carry `Cache-Control: no-store` so the browser cache keeps no copy |
-| Export | Writes a ZIP the user chooses; the app does not retain it |
+| Export | Writes a ZIP the user chooses; the app does not retain it. Photos are the originals, except a paper where an Aadhaar number was found: that one ships as the redacted working copy (`photo_is_original: false`) |
 | Uninstall | Delete the `data/` folder; README shows the command |
 
 ## 7. Repository hygiene

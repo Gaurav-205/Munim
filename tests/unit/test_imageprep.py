@@ -259,3 +259,26 @@ def test_pixelate_boxes_flattens_the_box_and_leaves_the_rest() -> None:
 def test_pixelate_boxes_with_no_boxes_returns_the_same_bytes() -> None:
     data = _stripes()
     assert imageprep.pixelate_boxes(data, []) is data
+
+
+def test_rotate_box_follows_prepare_clockwise() -> None:
+    box = (100, 200, 300, 400)  # y1, x1, y2, x2
+    assert imageprep.rotate_box(box, 90) == (200, 700, 400, 900)
+    assert imageprep.rotate_box(box, 360) == box
+    turned = box
+    for _ in range(4):
+        turned = imageprep.rotate_box(turned, 90)
+    assert turned == box
+    # The same box, drawn black on white and turned by prepare(), lands where rotate_box says.
+    image = Image.new("RGB", (1000, 600), "white")
+    left, top, right, bottom = imageprep.to_pixels(box, 1000, 600)
+    ImageDraw.Draw(image).rectangle([left, top, right, bottom], fill="black")
+    out = io.BytesIO()
+    image.save(out, format="PNG")
+    for degrees in (90, 180, 270):
+        prepared = imageprep.prepare(out.getvalue(), degrees)
+        turned_img = Image.open(io.BytesIO(prepared.jpeg)).convert("L")
+        y1, x1, y2, x2 = imageprep.rotate_box(box, degrees)
+        cx = (x1 + x2) / 2000 * prepared.width
+        cy = (y1 + y2) / 2000 * prepared.height
+        assert turned_img.getpixel((int(cx), int(cy))) < 60, degrees

@@ -18,7 +18,7 @@ from typing import Any
 import yaml
 from ulid import ULID
 
-from munim_core.ids import ifsc_codes
+from munim_core.ids import ifsc_codes, mask_aadhaar
 
 __all__ = ["Database", "new_id", "now"]
 
@@ -120,6 +120,23 @@ class Database:
             self.conn.execute("COMMIT")
             applied.append(entry.name)
         return applied
+
+    def remask_aadhaar(self) -> int:
+        """Mask Aadhaar numbers stored before the pattern accepted every separator.
+
+        Returns how many claims changed. Runs at startup; a no-op once the data is clean.
+        """
+        changed = 0
+        for row in self.all("SELECT id, value_read, value_current FROM claims"):
+            old = (row["value_read"], row["value_current"])
+            new = tuple(mask_aadhaar(v) if v else v for v in old)
+            if new != old:
+                self.run(
+                    "UPDATE claims SET value_read = ?, value_current = ? WHERE id = ?",
+                    (*new, row["id"]),
+                )
+                changed += 1
+        return changed
 
     def load_ifsc(self, rules_dir: Path) -> None:
         """Read the bundled IFSC list for rule IFSC-KNOWN; without the file the rule skips."""

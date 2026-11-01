@@ -166,6 +166,16 @@ def test_valid_aadhaar_numbers_are_masked_to_the_last_four_digits() -> None:
     assert mask_aadhaar(hyphenated) == f"XXXX XXXX {number[-4:]}"
 
 
+@pytest.mark.parametrize("sep", ["  ", "\n", "\u00a0", "\u3000", " - ", ".", "/", "\t", "\r\n"])
+def test_aadhaar_is_masked_whatever_separates_the_groups(sep: str) -> None:
+    # Security review: a model may return double spaces, line breaks or NBSP between groups.
+    number = synthetic_aadhaar("23456789012")  # synthetic
+    text = f"Aadhaar {number[:4]}{sep}{number[4:8]}{sep}{number[8:]}."
+    masked = mask_aadhaar(text)
+    assert number[:4] not in masked and number[4:8] not in masked
+    assert f"XXXX XXXX {number[-4:]}" in masked
+
+
 def test_invalid_twelve_digit_runs_are_untouched() -> None:
     number = synthetic_aadhaar("23456789012")  # synthetic
     wrong = number[:-1] + str((int(number[-1]) + 1) % 10)

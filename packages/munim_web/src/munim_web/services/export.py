@@ -1,4 +1,7 @@
-"""The case export ZIP (PRD E5): evidence file, claims with provenance, and the originals.
+"""The case export ZIP (PRD E5): evidence file, claims with provenance, and the photos.
+
+Photos are the originals byte for byte, except where an Aadhaar number was found: then the
+redacted working copy goes in instead, and `photo_is_original` is false.
 
 Built in memory and handed to the browser; nothing is written to the data folder
 (docs/SECURITY_PRIVACY.md, "Export"). `case.json` carries `schema` so a reader can tell
@@ -14,7 +17,7 @@ from pathlib import PurePosixPath
 from typing import Any
 
 from munim_web.services.case_service import CaseSnapshot, ref_of
-from munim_web.services.papers import PaperService
+from munim_web.services.papers import MASK_MARK, PaperService
 
 __all__ = ["SCHEMA", "build_zip", "claims_by_paper"]
 
@@ -45,9 +48,21 @@ def claims_by_paper(snap: CaseSnapshot) -> dict[str, list[dict[str, Any]]]:
     return out
 
 
-def _original_name(paper: Any) -> str:
+def _redacted(snap: CaseSnapshot, paper_id: str) -> bool:
+    """An Aadhaar number was masked in this paper's values, so its original shows it."""
+    return any(
+        c["paper_id"] == paper_id and MASK_MARK in (c["value_read"] or "") for c in snap.claims
+    )
+
+
+def _photo(snap: CaseSnapshot, paper: Any) -> tuple[str, str]:
+    """(name in the ZIP, stored path). The redacted working copy replaces an original that
+    shows an Aadhaar number (docs/SECURITY_PRIVACY.md section 5)."""
+    stem = f"{paper['kind'] or 'paper'}-{paper['id']}"
+    if _redacted(snap, paper["id"]):
+        return f"photos/{stem}-aadhaar-hidden.jpg", paper["derived_path"]
     suffix = PurePosixPath(paper["original_path"]).suffix
-    return f"originals/{paper['kind'] or 'paper'}-{paper['id']}{suffix}"
+    return f"originals/{stem}{suffix}", paper["original_path"]
 
 
 def _clock(snap: CaseSnapshot) -> dict[str, Any]:
@@ -91,7 +106,8 @@ def build_zip(
                 "id": p["id"],
                 "kind": p["kind"],
                 "sha256": p["sha256"],
-                "original": _original_name(p),
+                "photo": _photo(snap, p)[0],
+                "photo_is_original": not _redacted(snap, p["id"]),
                 "claims": claims.get(p["id"], []),
             }
             for p in snap.papers
@@ -105,5 +121,6 @@ def build_zip(
         archive.writestr("case.json", json.dumps(document, ensure_ascii=False, indent=2))
         archive.writestr("evidence.html", evidence_html)
         for p in snap.papers:
-            archive.writestr(_original_name(p), papers.path(p["original_path"]).read_bytes())
+            name, stored = _photo(snap, p)
+            archive.writestr(name, papers.path(stored).read_bytes())
     return buffer.getvalue()

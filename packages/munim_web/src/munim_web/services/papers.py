@@ -44,6 +44,9 @@ AUTO_REPAIR = frozenset(
 )
 
 
+MASK_MARK = "XXXX XXXX "  # what munim_core.ids.mask_aadhaar leaves in a value
+
+
 class UploadError(Exception):
     def __init__(self, message_key: str) -> None:
         super().__init__(message_key)
@@ -160,7 +163,18 @@ class PaperService:
         rotation = (int(paper["rotation"]) + degrees) % 360
         data = self.path(paper["original_path"]).read_bytes()
         prepared = await asyncio.to_thread(imageprep.prepare, data, rotation)
-        self.path(paper["derived_path"]).write_bytes(prepared.jpeg)
+        jpeg = prepared.jpeg
+        # The new derived image comes from the original: pixelate the Aadhaar boxes again.
+        boxes = [
+            imageprep.rotate_box(box, degrees)
+            for c in self.db.claims_for_case(paper["case_id"])
+            if c["paper_id"] == paper_id and MASK_MARK in (c["value_read"] or "")
+            for box in [(c["box_y1"], c["box_x1"], c["box_y2"], c["box_x2"])]
+            if None not in box
+        ]
+        if boxes:
+            jpeg = await asyncio.to_thread(imageprep.pixelate_boxes, jpeg, boxes)
+        self.path(paper["derived_path"]).write_bytes(jpeg)
         self.db.update_paper(
             paper_id,
             rotation=rotation,
@@ -277,8 +291,9 @@ class PaperService:
                 }
                 for d in outcome.claims
             ]
-            self.db.replace_claims(paper_id, rows)
+            # Blur first: if it fails, no claim points at an image that still shows the number.
             await self._blur_aadhaar(case_id, paper, outcome.claims, derived)
+            self.db.replace_claims(paper_id, rows)
             self.db.update_paper(paper_id, status="repairing", **meta)
             self.db.touch(case_id)
             self.db.event(

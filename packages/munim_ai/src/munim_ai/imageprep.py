@@ -38,6 +38,7 @@ JPEG_QUALITY = 90
 MAX_PIXELS = 50_000_000
 PDF_SCALE = 2.0  # 144 dpi: enough for small print, well under the pixel limit for A4
 CROP_EXPAND = 0.08
+REDACT_EXPAND = 0.25  # margin around an Aadhaar box before it is filled
 CROP_MIN = 64
 DARK_MEAN = 60.0
 BLUR_EDGE_MEAN = 4.0
@@ -170,6 +171,15 @@ def to_pixels(box: tuple[int, int, int, int], width: int, height: int) -> tuple[
     )
 
 
+def rotate_box(box: tuple[int, int, int, int], degrees: int) -> tuple[int, int, int, int]:
+    """Where a [y1, x1, y2, x2] box (0-1000 grid) lands after prepare() turns the image
+    clockwise by `degrees` (a multiple of 90)."""
+    y1, x1, y2, x2 = box
+    for _ in range((degrees // 90) % 4):
+        y1, x1, y2, x2 = x1, 1000 - y2, x2, 1000 - y1
+    return (y1, x1, y2, x2)
+
+
 def to_grid(
     pixels: tuple[int, int, int, int], width: int, height: int
 ) -> tuple[int, int, int, int]:
@@ -202,10 +212,11 @@ def crop(prepared_jpeg: bytes, box: tuple[int, int, int, int]) -> bytes:
 
 
 def pixelate_boxes(prepared_jpeg: bytes, boxes: Sequence[tuple[int, int, int, int]]) -> bytes:
-    """Pixelate each box (0-1000 grid), grown by 8%, so the digits in it cannot be read.
+    """Cover each box (0-1000 grid), grown by 25% a side, with one flat colour.
 
-    Blocks are half the box height (at least 8 px). Used on the derived image only; the
-    original stays as evidence (docs/SECURITY_PRIVACY.md section 5).
+    A flat fill (the area's mean colour) leaves nothing to reconstruct, unlike a mosaic, and the
+    margin allows for a loose box from the model. Used on the derived image only; the original
+    stays as evidence (docs/SECURITY_PRIVACY.md section 5).
     """
     if not boxes:
         return prepared_jpeg
@@ -213,22 +224,18 @@ def pixelate_boxes(prepared_jpeg: bytes, boxes: Sequence[tuple[int, int, int, in
     width, height = image.size
     for box in boxes:
         left, top, right, bottom = to_pixels(box, width, height)
-        grow_x = round((right - left) * CROP_EXPAND)
-        grow_y = round((bottom - top) * CROP_EXPAND)
+        grow_x = round((right - left) * REDACT_EXPAND)
+        grow_y = round((bottom - top) * REDACT_EXPAND)
         area = (
             max(0, left - grow_x),
             max(0, top - grow_y),
             min(width, right + grow_x),
             min(height, bottom + grow_y),
         )
-        w, h = area[2] - area[0], area[3] - area[1]
-        if w <= 0 or h <= 0:
+        if area[2] <= area[0] or area[3] <= area[1]:
             continue
-        block = max(8, h // 2)
-        small = image.crop(area).resize(
-            (max(1, w // block), max(1, h // block)), Image.Resampling.BOX
-        )
-        image.paste(small.resize((w, h), Image.Resampling.NEAREST), area[:2])
+        mean = ImageStat.Stat(image.crop(area)).mean
+        image.paste(tuple(round(c) for c in mean), area)
     out = io.BytesIO()
     image.save(out, format="JPEG", quality=JPEG_QUALITY, optimize=True)
     return out.getvalue()

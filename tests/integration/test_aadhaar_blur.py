@@ -89,3 +89,63 @@ def test_a_read_with_no_aadhaar_leaves_the_derived_image_alone(
     _, paper, derived_before = _read_with(web, monkeypatch, masked=False)
     papers = web.app.state.papers
     assert papers.path(paper["derived_path"]).read_bytes() == derived_before
+
+
+def test_startup_sweep_masks_numbers_stored_before_the_wider_pattern(
+    web: Web,  # noqa: F811
+) -> None:
+    case_id = web.new_case()
+    paper_id = web.upload(case_id, "invoice")
+    db = web.app.state.db
+    db.replace_claims(
+        paper_id,
+        [{"field": "supplier_name", "line_index": -1, "value_read": None, "value": None}],
+    )
+    old = "Aadhaar 2345  6789  0124"  # synthetic test number, double spaces: missed before
+    db.run(
+        "UPDATE claims SET value_read = ?, value_current = ? WHERE paper_id = ?",
+        (old, old, paper_id),
+    )
+    assert db.remask_aadhaar() == 1
+    row = db.one("SELECT value_read, value_current FROM claims WHERE paper_id = ?", (paper_id,))
+    assert row["value_read"] == row["value_current"] == "Aadhaar XXXX XXXX 0124"
+    assert db.remask_aadhaar() == 0  # idempotent
+
+
+def test_rotating_a_paper_keeps_the_aadhaar_box_pixelated(
+    web: Web,  # noqa: F811
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from munim_ai import imageprep
+
+    _, paper, _ = _read_with(web, monkeypatch, masked=True)
+    r = web.post(f"/papers/{paper['id']}/rotate?deg=90")
+    assert r.status_code == 303
+    papers = web.app.state.papers
+    plain = imageprep.prepare(papers.path(paper["original_path"]).read_bytes(), 90).jpeg
+    after = _pixels(papers.path(paper["derived_path"]).read_bytes())
+    fresh = _pixels(plain)
+    y1, x1, y2, x2 = imageprep.rotate_box(BOX, 90)
+    w, h = after.size
+    inside = (x1 * w // 1000, y1 * h // 1000, x2 * w // 1000, y2 * h // 1000)
+    assert len(set(after.crop(inside).get_flattened_data())) < (
+        len(set(fresh.crop(inside).get_flattened_data())) / 3
+    )
+
+
+def test_export_ships_the_redacted_photo_when_an_aadhaar_was_found(
+    web: Web,  # noqa: F811
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import zipfile
+
+    case_id, paper, _ = _read_with(web, monkeypatch, masked=True)
+    r = web.client.get(f"/cases/{case_id}/export.zip")
+    archive = zipfile.ZipFile(io.BytesIO(r.content))
+    name = f"photos/invoice-{paper['id']}-aadhaar-hidden.jpg"
+    assert name in archive.namelist()
+    assert not [n for n in archive.namelist() if n.startswith("originals/")]
+    papers = web.app.state.papers
+    assert archive.read(name) == papers.path(paper["derived_path"]).read_bytes()
+    entry = json.loads(archive.read("case.json"))["papers"][0]
+    assert (entry["photo"], entry["photo_is_original"]) == (name, False)

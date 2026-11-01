@@ -52,7 +52,8 @@ def test_export_holds_evidence_claims_and_originals(web: Web) -> None:  # noqa: 
     by_kind = {p["kind"]: p for p in data["papers"]}
     invoice = by_kind["invoice"]
     assert invoice["sha256"] == hashlib.sha256((DEMO / "invoice.jpg").read_bytes()).hexdigest()
-    assert invoice["original"] == f"originals/invoice-{papers['invoice']}.jpg"
+    assert invoice["photo"] == f"originals/invoice-{papers['invoice']}.jpg"
+    assert invoice["photo_is_original"] is True
     gstin = next(c for c in invoice["claims"] if c["field"] == "buyer_gstin")
     assert gstin["source"] == "repair"
     assert gstin["value_read"] != gstin["value_current"]
