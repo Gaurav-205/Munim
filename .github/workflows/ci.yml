@@ -29,7 +29,7 @@ jobs:
       - run: uv sync --all-packages --all-groups --locked
       - run: make static
       - name: Agent Skill (skills-ref validate)
-        run: uvx --from skills-ref==0.1.1 skills-ref validate skills/munim-checks
+        run: uvx --from skills-ref==0.1.1 agentskills validate skills/munim-checks
       - name: pip-audit
         run: uv export --all-packages --no-dev --no-emit-workspace --format requirements-txt > requirements-audit.txt && uv run pip-audit --strict --disable-pip -r requirements-audit.txt
 
