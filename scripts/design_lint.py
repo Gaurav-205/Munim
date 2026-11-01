@@ -7,7 +7,7 @@ Rules (numbers as in DESIGN.md section 12; every message cites section 7):
 2. Shadows, blurs and gradients: box-shadow (except a --shadow-* token, a focus ring
    marked ``/* focus-ring */`` on the same line, or ``none``), text-shadow,
    backdrop-filter, drop-shadow()/blur() filters, and every raw *-gradient()
-   (gradients are tokens: var(--gradient-*)).
+   outside tokens.css (gradients are tokens: var(--gradient-*)).
 3. border-radius above 16px, any percentage, and raw 9999px pills (use var(--radius-pill)).
 4. text-transform: uppercase outside a ``.stamp`` selector (every selector of a list
    must target ``.stamp``, and ``:not(.stamp)`` does not count); letter-spacing above
@@ -569,7 +569,7 @@ def check_decls(src: Source, decls: list[Decl], allow_hex: bool = False) -> None
         if prop in ("filter", "-webkit-filter"):
             for match in FILTER_FN_RE.finditer(clean):
                 src.add(decl.value_start + match.start(), 2, f"{match.group(1)}() is not allowed")
-        for match in GRADIENT_RE.finditer(clean):
+        for match in () if allow_hex else GRADIENT_RE.finditer(clean):
             src.add(decl.value_start + match.start(), 2, f"{match.group(1)}() is not allowed")
 
         if RADIUS_PROP_RE.fullmatch(prop):

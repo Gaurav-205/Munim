@@ -212,7 +212,7 @@ def test_non_default_case_settings_flow(web: Web) -> None:
     assert "This case is marked medium, so no interest is worked out." in page
 
     # Verify case list displays owed amount without interest
-    cases_page = web.client.get("/").text
+    cases_page = web.client.get("/cases").text
     assert "₹4,23,729.00" in cases_page
 
     # Confirm case
@@ -231,3 +231,38 @@ def test_non_default_case_settings_flow(web: Web) -> None:
     notice_hi = web.client.get(f"/cases/{case_id}/notice?lang=hi").text
     assert "यह मामला मध्यम उद्यम के रूप में चिह्नित है, इसलिए ब्याज की मांग नहीं की गई है।" in notice_hi
     assert "24 अप्रैल 2026" in notice_hi
+
+
+def test_landing_page_introduces_munim_with_a_labelled_sample(web: Web) -> None:
+    page = web.client.get("/").text
+    assert 'href="/cases"' in page
+    assert "Sample papers, made-up names." in page
+    assert "₹5,40,976.71" in page  # the demo case, also asserted by the e2e journey
+    assert "does not give legal advice" in page
+
+
+def test_recorded_read_is_labelled_beside_the_values(web: Web) -> None:
+    case_id = web.new_case()
+    web.read(web.upload(case_id, "invoice"))
+    page = web.client.get(f"/cases/{case_id}").text
+    assert "data-replayed" in page
+    assert "not a live read" in page
+
+
+def test_case_list_shows_totals_worked_out_from_the_cases(web: Web) -> None:
+    empty = web.client.get("/cases").text
+    assert "No cases yet." in empty
+    assert 'data-stat="owed"' not in empty
+
+    web.new_case()
+    page = web.client.get("/cases").text
+    assert 'data-stat="owed"' in page
+    assert "₹0.00" in page  # a case with no worked-out amount adds nothing
+
+
+def test_new_case_form_keeps_what_was_typed_when_a_name_is_missing(web: Web) -> None:
+    assert 'action="/cases"' in web.client.get("/cases/new").text
+    r = web.post("/cases", {"title": "Kept title", "supplier_name": "", "buyer_name": "x"})
+    assert r.status_code == 422
+    assert 'value="Kept title"' in r.text
+    assert 'action="/cases"' in r.text

@@ -174,6 +174,59 @@ def clock_context(snapshot: CaseSnapshot, t: Translator) -> dict[str, Any]:
     return ctx
 
 
+def case_summary(snapshot: CaseSnapshot) -> dict[str, Any]:
+    """One row of the case list: the figures come from the same clock the workbench shows."""
+    owed = interest = days_late = None
+    outcome = snapshot.clock.outcome
+    if outcome and outcome.result:
+        result = outcome.result
+        interest = 0 if snapshot.clock.interest_off else result.interest_paise
+        owed = result.total_paise - result.interest_paise + interest
+        days_late = result.days_late
+    return {
+        "case": snapshot.case,
+        "kinds": [p["kind"] for p in snapshot.papers],
+        "owed": owed,
+        "interest": interest,
+        "days_late": days_late,
+        "open": len(snapshot.unresolved),
+        "confirmed": snapshot.confirmed,
+        "unconfirmed_rate": bool(outcome and outcome.rates_unconfirmed),
+    }
+
+
+def dashboard(rows: list[dict[str, Any]]) -> dict[str, int | bool]:
+    """Totals above the case list. A case with no worked-out amount adds nothing."""
+    return {
+        "cases": len(rows),
+        "owed": sum(r["owed"] or 0 for r in rows),
+        "interest": sum(r["interest"] or 0 for r in rows),
+        "late": sum(1 for r in rows if (r["days_late"] or 0) > 0),
+        "open": sum(r["open"] for r in rows),
+        "unconfirmed": any(r.get("unconfirmed_rate") for r in rows),
+    }
+
+
+def progress(*, papers: bool, values: bool, terms: bool, confirmed: bool) -> list[dict[str, str]]:
+    """The workbench steps. The first step not done is the current one."""
+    steps = []
+    current_taken = False
+    for key, done in (
+        ("papers", papers),
+        ("values", values),
+        ("terms", terms),
+        ("confirm", confirmed),
+    ):
+        if done:
+            state = "done"
+        elif not current_taken:
+            state, current_taken = "current", True
+        else:
+            state = "todo"
+        steps.append({"key": key, "state": state})
+    return steps
+
+
 def step_label(step: Any, t: Translator) -> str:
     kind = step.kind
     if kind == "partial":

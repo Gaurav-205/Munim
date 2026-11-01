@@ -13,7 +13,7 @@ pytestmark = pytest.mark.e2e
 
 
 def create_case(page: Page, server: str) -> None:
-    page.goto(server + "/")
+    page.goto(server + "/cases/new")
     page.get_by_label("Case name").fill("Sample Fabricators v Demo Textiles")
     page.get_by_label("Supplier (you)").fill("Sample Fabricators Pvt Ltd")
     page.get_by_label("Buyer", exact=True).fill("Demo Textiles Ltd")

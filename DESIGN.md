@@ -52,7 +52,7 @@ rounded:
   field: 10px     # buttons, inputs
   panel: 16px     # cards
   stamp: 3px
-  pill: 999px     # status badges only
+  pill: 999px     # status badges, step marks, small sheet marks and meters
   none: 0px
 shadow:
   card: "0 1px 2px rgba(13, 18, 48, 0.05), 0 1px 3px rgba(13, 18, 48, 0.06)"
@@ -164,7 +164,7 @@ Version 2.0 replaces the flat paper-desk look of version 1 at the owner's reques
 
 Macros live in `templates/components/macros.html`, icons in `templates/components/icons.html`, styles in `static/css/app.css`.
 
-- **Button.** Primary (`ballpoint`, white text, `shadow-card`), secondary (`sheet`, `hairline-strong` edge), quiet (text only), danger (`red-pen` edge and text). `rounded.field`, at least 44px tall (40px allowed only for table-row actions on pointer devices). One primary per view. Labels name the action. Icons are optional and sit before the label.
+- **Button.** Primary (`ballpoint`, white text, `shadow-card`), secondary (`sheet`, `hairline-strong` edge), quiet (text only), danger (`red-pen` edge and text). `rounded.field`, at least 44px tall (40px allowed only for table-row actions on pointer devices). One primary per view. Labels name the action. Icons are optional and sit before the label; a forward arrow on a landing page action may follow it.
 - **Card.** `sheet`, 1px `hairline`, `rounded.panel`, `shadow-card`. Padding 24px. Cards that are links may lift to `shadow-raised` on hover.
 - **Stat card.** Label, `display` figure, optional helper line and a Lucide icon in a washed square. Every figure is computed from real case data. Never invent or round a figure for effect.
 - **App shell.** 248px `night` sidebar on screens from 1024px: brand, navigation with icons, reader badge and language switch at the bottom. Below 1024px, a `night` top bar with a menu button opening the same navigation.
@@ -188,7 +188,7 @@ Macros live in `templates/components/macros.html`, icons in `templates/component
 2. **Cases** (`/cases`): dashboard figures, then the case table. Empty state with a next action.
 3. **New case** (`/cases/new`): one focused form next to what to keep ready.
 4. **Workbench** (`/cases/{id}`): header, summary band, steps, then papers rail, viewer and claims (three columns from 1280px), then terms, payments and delete.
-5. **Evidence file** (`/cases/{id}/dossier`): screen preview and A4 print layout (18mm margins, summary, evidence table, working, originals, draft notice). Print is plain: no shell, shadows or backgrounds.
+5. **Evidence file** (`/cases/{id}/dossier`): screen preview and A4 print layout (18mm margins; parts: summary, evidence table, working, originals, draft notice; each original fits its own sheet). Print is plain: no shell, shadows or backgrounds.
 6. **Discrepancy map, Samadhaan companion, Working:** case sub-pages with a back link in the header.
 7. **Rules and sources, How well it reads, Settings, About:** single column of cards, 880px wide. A replay run is labelled as recorded responses, never as a live read.
 

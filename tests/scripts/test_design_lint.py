@@ -174,6 +174,12 @@ def test_shadows_blurs_and_gradients_fail(lint: Lint, declaration: str, message:
     assert message in result.messages[0]
 
 
+def test_gradient_token_is_defined_in_tokens_css_and_used_through_var(lint: Lint) -> None:
+    token = css_rule("--gradient-night: linear-gradient(#000000, #111111);", selector=":root")
+    assert_clean(lint("static/css/tokens.css", token))
+    assert_clean(lint("static/css/app.css", css_rule("background: var(--gradient-night);")))
+
+
 def test_box_shadow_token_passes(lint: Lint) -> None:
     assert_clean(lint("static/css/app.css", css_rule("box-shadow: var(--shadow-card);")))
 
@@ -215,7 +221,9 @@ def test_radius_up_to_sixteen_pixels_passes(lint: Lint, value: str) -> None:
         ("border-top-left-radius: 2px 24px;", "border-radius 24px is above 16px"),
     ],
 )
-def test_radius_above_sixteen_pixels_or_round_fails(lint: Lint, declaration: str, message: str) -> None:
+def test_radius_above_sixteen_pixels_or_round_fails(
+    lint: Lint, declaration: str, message: str
+) -> None:
     result = lint("static/css/app.css", css_rule(declaration))
 
     assert result.code == 1

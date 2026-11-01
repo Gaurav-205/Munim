@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% from "components/macros.html" import verdict, ident, stamp, sheet_tab %}
+{% from "components/macros.html" import verdict, ident, stamp, sheet_tab, back_link %}
 {% from "components/icons.html" import icon %}
 {% block title %}{{ t("evidence.title") }} | {{ case.title }}{% endblock %}
 {% block body_class %}dossier-page{% endblock %}
 {% block content %}
 <div class="dossier-tools no-print">
-  <a href="/cases/{{ case.id }}">{{ t("working.back") }}</a>
+  {{ back_link("/cases/" ~ case.id, t("working.back")) }}
   <button class="btn btn-secondary" type="button" data-print>{{ icon("print") }} {{ t("evidence.print") }}</button>
-  <a class="btn btn-secondary" href="/cases/{{ case.id }}/export.zip" download>{{ icon("sheet") }} {{ t("evidence.export") }}</a>
+  <a class="btn btn-secondary" href="/cases/{{ case.id }}/export.zip" download hx-boost="false">{{ icon("sheet") }} {{ t("evidence.export") }}</a>
 </div>
 
 <article class="dossier">
@@ -52,7 +52,7 @@
     {% for item in papers %}
       <h3>{{ sheet_tab(item.paper.kind) }} {{ loop.index }}: {{ t("paper.kind." ~ item.paper.kind) }}</h3>
       {% if item.paper.provider %}<p class="muted">{% if item.paper.replayed %}{{ t("evidence.reader.replay") }}{% else %}{{ t("evidence.reader", provider=item.paper.provider, model=item.paper.model, version=item.paper.prompt_version) }}{% endif %}</p>{% endif %}
-      <table class="evidence">
+      <div class="table-wrap" tabindex="0"><table class="evidence">
         <thead><tr><th scope="col">{{ t("claims.col.field") }}</th><th scope="col">{{ t("claims.col.value") }}</th><th scope="col">{{ t("claims.col.check") }}</th><th scope="col">{{ t("claims.col.source") }}</th></tr></thead>
         <tbody>
         {% for r in item.rows if r.value or r.value_read %}
@@ -65,7 +65,7 @@
           </tr>
         {% endfor %}
         </tbody>
-      </table>
+      </table></div>
     {% endfor %}
   </section>
 
@@ -85,7 +85,7 @@
     <div class="viewer-canvas">
       <img src="/papers/{{ item.paper.id }}/image" alt="{{ t('paper.photo', kind_key='paper.kind.' ~ item.paper.kind) }}" width="{{ item.paper.width }}" height="{{ item.paper.height }}">
       <svg class="boxes" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
-        {% for r in item.rows if r.box %}<rect x="{{ r.box[1] }}" y="{{ r.box[0] }}" width="{{ r.box[3] - r.box[1] }}" height="{{ r.box[2] - r.box[0] }}" class="box-line box-{{ r.status }}"/>{% endfor %}
+        {% for r in item.rows if r.box %}<g class="box-{{ r.status }}"><rect x="{{ r.box[1] }}" y="{{ r.box[0] }}" width="{{ r.box[3] - r.box[1] }}" height="{{ r.box[2] - r.box[0] }}" class="box-gap"/><rect x="{{ r.box[1] }}" y="{{ r.box[0] }}" width="{{ r.box[3] - r.box[1] }}" height="{{ r.box[2] - r.box[0] }}" class="box-line"/></g>{% endfor %}
       </svg>
     </div>
   </section>

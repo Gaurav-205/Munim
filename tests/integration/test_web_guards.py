@@ -187,7 +187,7 @@ def test_deleting_a_case_removes_its_files_and_rows(web: Web, tmp_path: Path) ->
         web.post(f"/cases/{case_id}/delete").headers["location"] == f"/cases/{case_id}#delete"
     )  # not confirmed
     r = web.post(f"/cases/{case_id}/delete", {"sure": "yes"})
-    assert r.headers["location"] == "/?deleted=1"
+    assert r.headers["location"] == "/cases?deleted=1"
     assert not (tmp_path / "uploads" / case_id).exists()
     db = web.app.state.db
     for table in ("cases", "papers", "claims", "acceptances", "payments", "events"):

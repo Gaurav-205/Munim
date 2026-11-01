@@ -1,5 +1,5 @@
 <div class="status-line" id="status-{{ paper.id }}" role="status" aria-live="polite"
-  {%- if paper.status in ("reading", "repairing") %} hx-get="/papers/{{ paper.id }}/status" hx-trigger="every 1s" hx-swap="outerHTML"{% endif %}>
+  {%- if paper.status in ("reading", "repairing") %} hx-get="/papers/{{ paper.id }}/status" hx-trigger="every 1s" hx-swap="outerHTML transition:false"{% endif %}>
   {%- if paper.status == "reading" %}{{ t("paper.reading") }}
   {%- elif paper.status == "repairing" %}{{ t("paper.repairing") }}
   {%- elif paper.status == "read" %}{{ t("paper.read.done") }}

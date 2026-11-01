@@ -3,11 +3,13 @@
 {% block content %}
 <div class="reading">
   <h1>{{ t("about.title") }}</h1>
-  <p>{{ t("about.what") }}</p>
-  <p>{{ t("about.model") }}</p>
-  <p>{{ t("about.privacy") }}</p>
-  <p>{{ t("about.licence") | code }}</p>
-  <p class="muted">{{ t("legal.notice") }}</p>
-  <p class="muted">{{ t("about.version", version=version) }}</p>
+  <p class="lede">{{ t("about.what") }}</p>
+  <div class="card about-list">
+    <p>{{ t("about.model") }}</p>
+    <p>{{ t("about.privacy") }}</p>
+    <p>{{ t("about.licence") | code }}</p>
+  </div>
+  <p class="muted small">{{ t("legal.notice") }}</p>
+  <p class="muted small">{{ t("about.version", version=version) }}</p>
 </div>
 {% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import button, csrf_field, field, back_link, sheet_tab %}
+{% block title %}{{ t("cases.new") }} | {{ t("app.name") }}{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    {{ back_link("/cases", t("cases.title")) }}
+    <h1>{{ t("cases.new") }}</h1>
+  </div>
+</header>
+<div class="split">
+  <section class="card" aria-label="{{ t('cases.new') }}">
+    {% if form_error %}<p class="message message-failed" role="alert">{{ t(form_error) }}</p>{% endif %}
+    <form method="post" action="/cases">
+      {{ csrf_field(csrf) }}
+      {{ field("title", t("case.form.title"), "title", form.title if form else "", help=t("case.form.title.help"), required=True) }}
+      {{ field("supplier_name", t("case.form.supplier"), "supplier_name", form.supplier_name if form else "", required=True) }}
+      {{ field("buyer_name", t("case.form.buyer"), "buyer_name", form.buyer_name if form else "", required=True) }}
+      {{ button(t("cases.new"), "primary") }}
+    </form>
+  </section>
+  <aside class="card card-quiet" aria-labelledby="ready-title">
+    <h2 id="ready-title">{{ t("case.ready.title") }}</h2>
+    <ul class="ready-list">
+      {% for kind in ("invoice", "challan", "po") %}
+      <li>{{ sheet_tab(kind) }}<span><strong>{{ t("paper.kind." ~ kind) }}</strong><span class="small">{{ t("case.ready." ~ kind) }}</span></span></li>
+      {% endfor %}
+    </ul>
+  </aside>
+</div>
+{% endblock %}

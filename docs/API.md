@@ -6,7 +6,9 @@ Server-rendered HTML plus a small JSON surface for the viewer and for programmat
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| GET | `/` | Case list (table, empty state) |
+| GET | `/` | Landing page |
+| GET | `/cases` | Case list with dashboard totals (table, empty state) |
+| GET | `/cases/new` | New case form |
 | POST | `/cases` | Create case (title, supplier_name, buyer_name) -> 303 to `/cases/{id}` |
 | GET | `/cases/{id}` | Workbench |
 | POST | `/cases/{id}/settings` | Update case inputs (udyam, agreement, credit_days, acceptance_date, objection_removed_on, interest_base, as_on_date) |

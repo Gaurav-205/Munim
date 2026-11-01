@@ -52,7 +52,7 @@ def start(data: Path) -> tuple[str, uvicorn.Server]:
 
 
 def demo_case(page: Page, url: str) -> str:
-    page.goto(url + "/")
+    page.goto(url + "/cases/new")
     page.locator("#title").fill("Sample Fabricators v Demo Textiles")
     page.locator("#supplier_name").fill("Sample Fabricators Pvt Ltd")
     page.locator("#buyer_name").fill("Demo Textiles Ltd")
@@ -61,7 +61,7 @@ def demo_case(page: Page, url: str) -> str:
     for kind, label in KINDS:
         page.locator("#file").set_input_files(str(DEMO / f"{kind}.jpg"))
         page.locator("#kind").select_option(kind)
-        page.locator(".dropzone button").click()
+        page.locator(".add-paper button").click()
         expect(page.locator("#viewer-title")).to_have_text(label)
         page.locator("form[action$='/read'] button").click()
         expect(page.locator(".status-line")).to_have_text("Paper checked", timeout=20_000)
@@ -88,7 +88,9 @@ def main() -> int:
             page = browser.new_page(viewport={"width": 1440, "height": 1000})
             case_id = demo_case(page, url)
             pages = {
-                "cases": "/",
+                "landing": "/",
+                "cases": "/cases",
+                "new-case": "/cases/new",
                 "workbench": f"/cases/{case_id}",
                 "evidence": f"/cases/{case_id}/dossier",
             }

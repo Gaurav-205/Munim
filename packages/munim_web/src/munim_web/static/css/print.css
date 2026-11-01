@@ -1,12 +1,16 @@
-/* Evidence file on A4 (DESIGN.md 5, "Dossier print layout"). */
-@page { size: A4; margin: 22mm 20mm; }
+/* Evidence file on A4 (DESIGN.md section 5). Plain paper: no shell, shadows or backgrounds. */
+@page { size: A4; margin: 18mm; }
 
-body { background: var(--color-sheet); }
-.topbar, .no-print, .dossier-tools, .skip, .toast { display: none; }
+body { background: var(--color-sheet); display: block; }
+.sidebar, .no-print, .dossier-tools, .skip, .toast { display: none; }
+.shell { display: block; }
 .page { padding: 0; max-width: none; }
-.d-page { border: 0; padding: 0; margin: 0; break-after: page; }
+.d-page { border: 0; padding: 0; margin: 0; box-shadow: none; break-after: page; animation: none; }
 .d-page:last-child { break-after: auto; }
 .evidence tr, .working tr { break-inside: avoid; }
-.d-original .viewer-canvas { break-inside: avoid; }
-.notice { border: 0; padding: 0; font-size: 10.5pt; line-height: 1.45; }
+/* An original fits on the page under its heading, with boxes still aligned to the photo. */
+.d-original .viewer-canvas { display: inline-block; width: auto; break-inside: avoid; }
+.d-original .viewer-canvas img { width: auto; height: auto; max-width: 100%; max-height: 225mm; }
+* { background: transparent !important; box-shadow: none !important; }
+.notice { border: 0; padding: 0; font-size: 10.5pt; line-height: 1.45; background: var(--color-sheet); }
 a { color: var(--color-ink); text-decoration: none; }

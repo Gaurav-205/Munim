@@ -100,3 +100,96 @@ def test_reader_down_shows_the_fix_and_hand_entry_works(
     row = page.locator("tr.row", has=page.get_by_role("rowheader", name="Invoice total"))
     expect(row.locator(".hand")).to_have_text("5,00,000.00")
     expect(row).to_contain_text("Edited by you")
+
+
+def test_landing_page_leads_to_the_cases_and_a_new_case(page: Page, server: str) -> None:
+    page.goto(server + "/")
+    expect(page.get_by_role("heading", level=1)).to_contain_text("your own papers")
+    page.get_by_role("link", name="Open cases").first.click()
+    expect(page).to_have_url(server + "/cases")
+    page.get_by_role("link", name="New case").first.click()
+    expect(page.get_by_label("Case name")).to_be_visible()
+
+
+def test_every_page_fits_a_phone_without_sideways_scroll(page: Page, server: str) -> None:
+    page.set_viewport_size({"width": 360, "height": 780})
+    create_case(page, server)
+    add_and_read(page, "invoice", "Tax invoice")
+    case_path = page.url.removeprefix(server).split("?")[0]
+    for path in (
+        "/",
+        "/cases",
+        "/cases/new",
+        case_path,
+        case_path + "/dossier",
+        case_path + "/working",
+        case_path + "/discrepancies",
+        case_path + "/samadhaan",
+        "/rules",
+        "/evaluation",
+        "/settings",
+        "/about",
+    ):
+        page.goto(server + path)
+        width = page.evaluate("document.documentElement.scrollWidth")
+        assert width <= 360, (path, width)
+
+
+def test_phone_menu_opens_and_reaches_a_page(page: Page, server: str) -> None:
+    page.set_viewport_size({"width": 360, "height": 780})
+    page.goto(server + "/cases")
+    link = page.get_by_role("link", name="Rules and sources")
+    expect(link).to_be_hidden()
+    page.get_by_role("button", name="Menu").click()
+    link.click()
+    expect(page).to_have_url(server + "/rules")
+    expect(page.get_by_role("link", name="Settings")).to_be_hidden()
+
+
+def test_downloads_are_real_downloads_not_page_swaps(page: Page, server: str) -> None:
+    create_case(page, server)
+    add_and_read(page, "invoice", "Tax invoice")
+    case_path = page.url.split("?")[0]
+    page.goto(case_path + "/dossier")
+    with page.expect_download() as zip_file:
+        page.get_by_role("link", name="Download").click()
+    assert zip_file.value.suggested_filename.endswith(".zip")
+    page.goto(case_path + "/samadhaan")
+    with page.expect_download() as csv_file:
+        page.get_by_role("link", name="Download CSV").click()
+    assert csv_file.value.suggested_filename.endswith(".csv")
+
+
+def test_copy_buttons_copy_inputs_as_well_as_text(
+    page: Page, server: str, browser_name: str
+) -> None:
+    if browser_name != "chromium":
+        pytest.skip("clipboard permissions are a Chromium Playwright feature")
+    page.context.grant_permissions(["clipboard-read", "clipboard-write"], origin=server)
+    create_case(page, server)
+    add_and_read(page, "invoice", "Tax invoice")
+    page.goto(page.url.split("?")[0] + "/samadhaan")
+    field = page.locator("#field-invoice_number")
+    expected = field.input_value()
+    assert expected
+    page.locator(f"[data-copy='{field.get_attribute('id')}']").click()
+    expect(page.locator(".toast")).to_have_text("Copied")
+    assert page.evaluate("navigator.clipboard.readText()") == expected
+
+
+def test_a_refused_upload_shows_its_message_through_htmx(page: Page, server: str) -> None:
+    create_case(page, server)
+    page.locator("#file").set_input_files(
+        {"name": "note.txt", "mimeType": "text/plain", "buffer": b"not a paper"}
+    )
+    page.get_by_role("button", name="Add this paper").click()
+    expect(page.locator("main [role=alert]")).to_be_visible()
+
+
+def test_reduced_motion_runs_no_animation(page: Page, server: str) -> None:
+    page.emulate_media(reduced_motion="reduce")
+    page.goto(server + "/")
+    running = page.evaluate("document.getAnimations().length")
+    assert running == 0
+    hand = page.locator(".hand").first
+    expect(hand).to_be_visible()

@@ -223,3 +223,79 @@ Signature: ____________________
 | Misread in first read | Buyer GSTIN: the check character (position 15) is read as a different character outside the look-alike map, so `GSTIN-CHECKSUM` fails, no look-alike candidate passes and the model re-read returns the printed value. The misread exists only in the recorded response; the paper prints the correct GSTIN, so a live read may not show it |
 
 (The ₹5,00,000 total ties to the golden interest vector family used in the tests. On the seeded Bank Rate table the demo shows ₹40,976.71 interest and ₹5,40,976.71 owed at 16.5%; at the golden vector's explicit 17.25% it would be ₹42,903.70 and ₹5,42,903.70. The generator constructs the GSTINs with the checksum algorithm; they are synthetic.)
+
+## Redesign strings (design system v2)
+
+| Key | English | Hindi (draft) |
+| --- | --- | --- |
+| nav.menu | Menu | मेन्यू |
+| step.title | Progress on this case | इस मामले की प्रगति |
+| step.papers | Add and check the invoice | इनवॉइस जोड़ें और जाँचें |
+| step.values | Resolve the checks | जाँच के मुद्दे सुलझाएँ |
+| step.terms | Set the payment terms | भुगतान की शर्तें भरें |
+| step.confirm | Confirm the values | मान पक्के करें |
+| stats.label | Totals across your cases | आपके सभी मामलों का जोड़ |
+| stats.owed | Total owed to you | आपकी कुल बकाया रकम |
+| stats.owed.help | Cases in this list: {n} | इस सूची के मामले: {n} |
+| stats.interest | Interest to date | अब तक का ब्याज |
+| stats.interest.help | Included in the total owed | कुल बकाया रकम में शामिल |
+| stats.late | Cases past the due date | देय तिथि पार कर चुके मामले |
+| stats.late.help | Payment is late on these | इनमें भुगतान में देरी है |
+| stats.open | Checks that need you | आपके लिए बची जाँचें |
+| stats.open.help | Fix or accept with a reason | ठीक करें या कारण देकर मानें |
+| cases.col.status | Status | स्थिति |
+| cases.papers.none | None yet | अभी कोई नहीं |
+| cases.status.open | Checks that need you: {n} | आपके लिए बची जाँचें: {n} |
+| cases.status.confirmed | Values confirmed | मान पक्के किए गए |
+| cases.status.progress | In progress | काम जारी है |
+| cases.days_late | Days late: {n} | देरी के दिन: {n} |
+| cases.empty.title | Start your first case | अपना पहला मामला शुरू करें |
+| case.ready.title | What to keep ready | क्या तैयार रखें |
+| case.ready.invoice | The bill you raised on the buyer. Needed to work out the amount. | खरीदार को दिया गया बिल। रकम निकालने के लिए ज़रूरी। |
+| case.ready.challan | With the receiver's stamp or signature. It shows when the goods arrived. | पाने वाले की मुहर या दस्तखत के साथ। इससे पता चलता है कि माल कब पहुँचा। |
+| case.ready.po | It shows the credit days you agreed with the buyer, if any. | इससे खरीदार के साथ तय उधार के दिन पता चलते हैं, अगर तय हुए हों। |
+| discrepancy.items | Items on the invoice and the challan | इनवॉइस और चालान की चीज़ें |
+| samadhaan.fields | Fields for the portal | पोर्टल के लिए जानकारी |
+| land.title | Late payment evidence for small suppliers | छोटे सप्लायरों के लिए देर से भुगतान का सबूत |
+| land.nav.how | How it works | यह कैसे काम करता है |
+| land.nav.checks | What it checks | यह क्या जाँचता है |
+| land.hero.title | Your late payment, worked out from your own papers | आपका अटका भुगतान, आपके अपने कागज़ों से हिसाब के साथ |
+| land.hero.lede | Munim reads photos of your tax invoice, delivery challan and purchase order, checks them with fixed rules, and works out the interest a late buyer owes under the MSMED Act. | मुनीम आपके टैक्स इनवॉइस, डिलीवरी चालान और खरीद आदेश की फ़ोटो पढ़ता है, उन्हें तय नियमों से जाँचता है, और एमएसएमईडी कानून के तहत देर करने वाले खरीदार पर बनने वाला ब्याज निकालता है। |
+| land.hero.note | Open source. Runs on your own computer. Works in English and Hindi. | ओपन सोर्स। आपके अपने कंप्यूटर पर चलता है। अंग्रेज़ी और हिंदी में काम करता है। |
+| land.hero.note.demo | This public demo uses recorded responses and its own sample papers. For your own papers, run Munim on your computer. | यह सार्वजनिक डेमो रिकॉर्ड किए गए जवाबों और अपने नमूना कागज़ों पर चलता है। अपने कागज़ों के लिए मुनीम को अपने कंप्यूटर पर चलाएँ। |
+| land.cta.open | Open cases | मामले खोलें |
+| land.cta.how | See how it works | देखें यह कैसे काम करता है |
+| land.cta.source | See the source code | सोर्स कोड देखें |
+| land.sample | Sample papers, made-up names. | नमूना कागज़, नाम काल्पनिक। |
+| land.sample.note | Re-read from the marked box. GSTIN checksum now passes. | चिह्नित बॉक्स से दोबारा पढ़ा गया। जीएसटीआईएन चेकसम अब पास है। |
+| land.sample.late | {days} days late, {interest} interest | {days} दिन की देरी, {interest} ब्याज |
+| land.how.title | From a pile of papers to an evidence file | कागज़ों के ढेर से सबूत की फ़ाइल तक |
+| land.how.lede | Gemma reads the papers. Munim's own code decides every check and every number. | जेम्मा कागज़ पढ़ता है। हर जाँच और हर संख्या मुनीम का अपना कोड तय करता है। |
+| land.how.photo.title | Add your papers | अपने कागज़ जोड़ें |
+| land.how.photo.body | Add a photo or PDF of the tax invoice, delivery challan and purchase order. | टैक्स इनवॉइस, डिलीवरी चालान और खरीद आदेश की फ़ोटो या पीडीएफ़ जोड़ें। |
+| land.how.read.title | Gemma reads them | जेम्मा उन्हें पढ़ता है |
+| land.how.read.body | The model copies what is printed and marks where it found each value. | मॉडल छपी हुई बात उतारता है और दिखाता है कि हर मान कहाँ मिला। |
+| land.how.check.title | Fixed rules check them | तय नियम उन्हें जाँचते हैं |
+| land.how.check.body | Identifiers, invoice arithmetic and the three papers against each other. You settle anything that doesn't match. | पहचान नंबर, इनवॉइस का हिसाब और तीनों कागज़ों का आपसी मिलान। जो मेल न खाए, उसे आप तय करते हैं। |
+| land.how.file.title | Confirm and print | पक्का करें और छापें |
+| land.how.file.body | Get the amount owed, the working, an evidence file and a draft notice. | बकाया रकम, पूरा हिसाब, सबूत की फ़ाइल और नोटिस का मसौदा पाएँ। |
+| land.checks.title | Every number shows where it came from | हर संख्या बताती है कि वह कहाँ से आई |
+| land.f.redpen.title | Corrections stay visible | सुधार दिखते रहते हैं |
+| land.f.redpen.body | A wrong value is struck through in red, with the new value and the reason beside it. | गलत मान पर लाल लकीर लगती है और उसके पास नया मान और कारण दिखता है। |
+| land.f.clock.title | The payment clock | भुगतान की घड़ी |
+| land.f.clock.body | Due date, days late and interest at 3 times the Bank Rate, compounded every month, with each step shown. | देय तिथि, देरी के दिन और बैंक दर के 3 गुना पर मासिक चक्रवृद्धि ब्याज, हर चरण के साथ। |
+| land.f.evidence.title | Evidence beside each value | हर मान के पास सबूत |
+| land.f.evidence.body | See the crop of the paper a value came from and the rule that checked it. A pass is not proof, so you confirm. | देखें कि मान कागज़ के किस हिस्से से आया और किस नियम ने जाँचा। पास होना सबूत नहीं है, इसलिए पक्का आप करते हैं। |
+| land.f.compare.title | Papers compared | कागज़ों का मिलान |
+| land.f.compare.body | Compare invoice and challan items line by line, and the challan stamp with the buyer's name. | इनवॉइस और चालान की चीज़ें एक-एक करके और चालान की मुहर को खरीदार के नाम से मिलाएँ। |
+| land.f.samadhaan.title | Ready for MSME Samadhaan | एमएसएमई समाधान के लिए तैयार |
+| land.f.samadhaan.body | Copy each field and a statement of claim for the portal, or download them as a CSV file. | पोर्टल के लिए हर जानकारी और दावे का विवरण कॉपी करें, या सीएसवी फ़ाइल में डाउनलोड करें। |
+| land.f.languages.title | English and Hindi | अंग्रेज़ी और हिंदी |
+| land.f.languages.body | The screens and the draft notice come in both languages. The Hindi is a draft, and portal labels stay in English. | स्क्रीन और नोटिस का मसौदा दोनों भाषाओं में हैं। हिंदी अभी मसौदा है और पोर्टल की जानकारी के नाम अंग्रेज़ी में रहते हैं। |
+| land.trust.title | The model reads. Your papers stay yours. | मॉडल पढ़ता है। आपके कागज़ आपके ही रहते हैं। |
+| land.foot.nav | More pages | और पेज |
+| claims.replayed | These values come from recorded responses, not a live read of this photo. | ये मान रिकॉर्ड किए गए जवाबों से हैं, इस फ़ोटो को अभी नहीं पढ़ा गया। |
+| stats.owed.unconfirmed | Uses a Bank Rate you haven't confirmed. | इसमें ऐसी बैंक दर है जिसे आपने पक्का नहीं किया है। |
+| paper.kb | KB | केबी |
+| land.trust.demo | This public demo reads only its own sample papers, with recorded responses. Installed on your computer, your papers stay there unless you choose the hosted reader. | यह सार्वजनिक डेमो रिकॉर्ड किए गए जवाबों से सिर्फ़ अपने नमूना कागज़ पढ़ता है। आपके कंप्यूटर पर लगाने पर आपके कागज़ वहीं रहते हैं, जब तक आप होस्टेड रीडर न चुनें। |
+| land.how.photo.body.demo | In this demo, add the sample papers. On your computer, add a photo or PDF of each paper. | इस डेमो में नमूना कागज़ जोड़ें। अपने कंप्यूटर पर हर कागज़ की फ़ोटो या पीडीएफ़ जोड़ें। |

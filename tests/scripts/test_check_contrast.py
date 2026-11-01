@@ -81,14 +81,14 @@ def test_synthetic_design_passes_and_reads_every_note_form(tmp_path: Path) -> No
     # "Text on it must be" (bond row) and "16.3:1 on bond" (ink row) name the same
     # pair; it is checked once, keeps its first position and takes the claimed ratio.
     assert lines[:-1] == [
-        "ink on bond: 16.43 (threshold 4.5, claimed 16.4) ok",
+        "ink on bond: 16.29 (threshold 4.5, claimed 16.3) ok",
         "muted on bond: 5.54 (threshold 4.5, claimed none) ok",
-        "hairline-strong on sheet: 3.24 (threshold 3.0, claimed 3.2) ok",
-        "tick on tick-wash: 5.24 (threshold 4.5, claimed 5.2) ok",
+        "hairline-strong on sheet: 3.59 (threshold 3.0, claimed 3.59) ok",
+        "tick on tick-wash: 4.59 (threshold 4.5, claimed 4.6) ok",
         "sheet on tick: 5.31 (threshold 4.5, claimed none) ok",
         "ink on tick-wash: 15.50 (threshold 4.5, claimed none) ok",
-        "sheet on ballpoint-pressed: 9.75 (threshold 4.5, claimed 9.8) ok",
-        "ink on carbon-pink: 11.86 (threshold 4.5, claimed none) ok",
+        "sheet on ballpoint-pressed: 11.45 (threshold 4.5, claimed 11.5) ok",
+        "ink on carbon-pink: 12.89 (threshold 4.5, claimed 12.9) ok",
     ]
 
 

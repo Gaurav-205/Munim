@@ -189,4 +189,15 @@ Commit `f25d567` (2026-10-12 23:49:30 +0530, "docs: add Munim planning pack prep
 - Not done: T6.9 needs real papers and a live model on the owner's machine.
 - Open question for the owner: the evidence file shows a Section 43B(h) verdict and an estimated tax at 25%/30% (added in v1.2), while PRD 49 and DOMAIN_RULES 211 exclude 43B(h) and README says it is not covered.
 
+### 2026-11-01 Full UI redesign (design system v2)
+- Owner asked for a modern redesign and chose: same FastAPI, Jinja and htmx app, new design contract, plus a landing page, dashboard figures and motion, no dark mode. Branch `feat/redesign`, not pushed.
+- 5c5b9c1 DESIGN.md v2, tokens (shadow, gradient, night surfaces), `design_lint` rules 2, 3 and 8 changed to match, Inter 5.1.0 and Lucide 0.460.0 vendored. No JS or CSS framework; no build step.
+- New routes: `/` landing, `/cases` list with totals, `/cases/new`. Every template and `app.css` rebuilt. Delete now redirects to `/cases?deleted=1`.
+- Bugs fixed on the way: copy buttons copied nothing from inputs (Samadhaan fields); htmx did not swap 4xx and 5xx pages, so refused forms looked dead; a failed new-case form hid the case list; `icon("download")` drew nothing; statement of claim said "Supplier ()" without a Udyam number; dossier boxes printed dashed for every status; each original left a heading-only sheet; strike line stopped at 120px.
+- design-reviewer: 5 high, 8 medium, 4 low. All fixed except: English core notes on the Hindi discrepancy page and raw values on `/evaluation` (landing copy now says the Hindi is a draft; core still holds these strings), and the printed invoice total with no rupee sign, kept because it is the value as read.
+- A flake appeared once (status stuck, 20s): polling swaps are now excluded from view transitions and `::view-transition` takes no pointer events. Three browser runs clean after that.
+- Evidence: `make check` exit 0 (1036 passed; core 97.80%/94.56%, overall 92.56%). `pytest -m "e2e or a11y" --browser chromium`: 17 passed, three runs. Browser journey with `demo_papers` set: amount ₹5,40,976.71, stamp shown, no console errors. `make eval`: validate_report 0 problems. `make screens`: 30 screenshots.
+- Not run: Firefox (cannot launch in this sandbox; CI runs it), production deploy, GitNexus (not installed; callers checked by text search).
+- Open: `make eval` regenerates `eval/reports/replay.json` with wrong-and-passed 11 instead of the committed 13 (rule changes before this branch, not the UI). Report left as committed; needs a decision.
+
 STATUS: READY FOR RELEASE (v0.1.0)

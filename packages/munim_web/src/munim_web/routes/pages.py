@@ -74,24 +74,26 @@ def parse_day(text: str | None) -> str | None:
         raise ValueError(text) from exc
 
 
-# ---------------------------------------------------------------- case list
+# ---------------------------------------------------------------- landing and case list
 @router.get("/", response_class=HTMLResponse)
+async def landing(request: Request) -> Response:
+    return render(request, "landing.html", demo=request.app.state.settings.demo_papers is not None)
+
+
+@router.get("/cases", response_class=HTMLResponse)
 async def cases(request: Request) -> Response:
     db = db_of(request)
     rows = []
     for case in db.cases():
         snap = load_case(db, case["id"], today(request))
-        owed = None
-        if snap and snap.clock.outcome and snap.clock.outcome.result:
-            result = snap.clock.outcome.result
-            if snap.clock.interest_off:
-                owed = result.total_paise - result.interest_paise
-            else:
-                owed = result.total_paise
-        rows.append(
-            {"case": case, "kinds": [p["kind"] for p in db.papers(case["id"])], "owed": owed}
-        )
-    return render(request, "cases.html", rows=rows)
+        if snap:
+            rows.append(views.case_summary(snap))
+    return render(request, "cases.html", rows=rows, stats=views.dashboard(rows))
+
+
+@router.get("/cases/new", response_class=HTMLResponse)
+async def new_case(request: Request) -> Response:
+    return render(request, "case_new.html")
 
 
 @router.post("/cases")
@@ -105,9 +107,8 @@ async def create_case(
     if not all(values):
         return render(
             request,
-            "cases.html",
+            "case_new.html",
             status_code=422,
-            rows=[],
             form_error="case.err.required",
             form=dict(zip(("title", "supplier_name", "buyer_name"), values, strict=True)),
         )
@@ -146,6 +147,12 @@ def workbench_context(request: Request, snap: CaseSnapshot, paper_id: str | None
         "demo": request.app.state.settings.demo_papers is not None,
     }
     ctx.update(views.clock_context(snap, t))
+    ctx["steps"] = views.progress(
+        papers=has_invoice,
+        values=has_invoice and not snap.unresolved,
+        terms=ctx["result"] is not None,
+        confirmed=snap.confirmed,
+    )
     return ctx
 
 
@@ -632,7 +639,7 @@ async def delete_case(
         return back(f"/cases/{case_id}#delete")
     papers_of(request).delete_case_files(case_id)
     db_of(request).delete_case(case_id)
-    return back("/?deleted=1")
+    return back("/cases?deleted=1")
 
 
 # ---------------------------------------------------------------- rules, evaluation, settings

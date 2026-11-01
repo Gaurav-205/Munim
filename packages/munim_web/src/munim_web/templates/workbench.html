@@ -1,25 +1,59 @@
 {% extends "base.html" %}
-{% from "components/macros.html" import button, csrf_field, field, verdict, ident, sheet_tab, stamp %}
+{% from "components/macros.html" import button, csrf_field, field, verdict, ident, sheet_tab, stamp, back_link %}
 {% from "components/icons.html" import icon %}
 {% block title %}{{ case.title }} | {{ t("app.name") }}{% endblock %}
 {% block main_class %}workbench{% endblock %}
 {% block content %}
-<div class="wb-head">
-  <h1>{{ case.title }}</h1>
-  <p class="muted">{{ t("cases.parties", supplier=case.supplier_name, buyer=case.buyer_name) }}</p>
+<header class="page-head wb-head">
   <div>
-    <a class="btn btn-secondary" href="/cases/{{ case.id }}/discrepancies">{{ t("discrepancy.button") }}</a>
-    <a class="btn btn-secondary" href="/cases/{{ case.id }}/samadhaan">{{ t("samadhaan.button") }}</a>
-    <a class="btn btn-secondary" href="/cases/{{ case.id }}/dossier">{{ t("evidence.open") }}</a>
+    {{ back_link("/cases", t("cases.title")) }}
+    <h1>{{ case.title }}</h1>
+    <p class="lede">{{ t("cases.parties", supplier=case.supplier_name, buyer=case.buyer_name) }}</p>
   </div>
-</div>
+  <div class="page-actions">
+    <a class="btn btn-secondary" href="/cases/{{ case.id }}/discrepancies">{{ icon("compare", 18) }}{{ t("discrepancy.button") }}</a>
+    <a class="btn btn-secondary" href="/cases/{{ case.id }}/samadhaan">{{ icon("landmark", 18) }}{{ t("samadhaan.button") }}</a>
+    <a class="btn btn-secondary" href="/cases/{{ case.id }}/dossier">{{ icon("file-check", 18) }}{{ t("evidence.open") }}</a>
+  </div>
+</header>
 
 {% if error %}<p class="message message-failed" role="alert">{{ t(error, n=unresolved | length, field=t("settings.case.as_on"), mb=upload_mb) | code }}</p>{% endif %}
 
+{# ------------------------------------------------ clock and progress #}
+{% include "_clock.html" with context %}
+
+<section class="flow card" aria-labelledby="confirm-title">
+  <h2 id="confirm-title" class="visually-hidden">{{ t("step.title") }}</h2>
+  <ol class="steps">
+    {% for step in steps %}
+    <li class="step step-{{ step.state }}" {% if step.state == "current" %}aria-current="step"{% endif %}>
+      <span class="step-mark" aria-hidden="true">{% if step.state == "done" %}{{ icon("tick", 14) }}{% else %}{{ loop.index }}{% endif %}</span>
+      <span>{{ t("step." ~ step.key) }}</span>
+    </li>
+    {% endfor %}
+  </ol>
+  <div class="confirm">
+  {% if case.confirmed_at %}
+    <div class="confirmed">
+      {{ stamp(t, t.date(case.confirmed_at[:10]), animate=request.query_params.get("stamped") == "1") }}
+      <p>{{ t("confirm.done", at=t.date(case.confirmed_at[:10])) }}</p>
+    </div>
+  {% else %}
+    {% if not has_invoice %}<p class="muted">{{ t("confirm.needs_papers") }}</p>
+    {% elif unresolved %}<p class="message message-failed">{{ t("confirm.blocked", n=unresolved | length) }}</p>{% endif %}
+    <form method="post" action="/cases/{{ case.id }}/confirm">
+      {{ csrf_field(csrf) }}
+      {{ button(t("confirm.button"), "primary", disabled=not can_confirm) }}
+    </form>
+  {% endif %}
+  </div>
+</section>
+
 <div class="wb-grid">
   {# ------------------------------------------------ papers rail #}
-  <nav class="rail sheet" aria-label="{{ t('cases.col.papers') }}">
-    <h2 class="h3">{{ t("cases.col.papers") }}</h2>
+  <div class="rail">
+  <nav class="card rail-papers" aria-label="{{ t('cases.col.papers') }}">
+    <h2>{{ t("cases.col.papers") }}</h2>
     <ul class="rail-list">
     {% for kind in kinds %}
       {% set p = by_kind.get(kind) %}
@@ -27,47 +61,53 @@
         {{ sheet_tab(kind) }}
         {% if p %}
           <a href="/cases/{{ case.id }}?paper={{ p.id }}" {% if selected and p.id == selected.id %}aria-current="true"{% endif %}>{{ t("paper.kind." ~ kind) }}</a>
-          <span class="rail-status muted">{{ t("paper.status." ~ p.status) }}</span>
+          <span class="rail-status">{{ t("paper.status." ~ p.status) }}</span>
         {% else %}
-          <span>{{ t("paper.kind." ~ kind) }}</span>
-          <span class="rail-status muted">{{ t("paper.missing") }}</span>
+          <span class="rail-name">{{ t("paper.kind." ~ kind) }}</span>
+          <span class="rail-status">{{ t("paper.missing") }}</span>
         {% endif %}
       </li>
     {% endfor %}
     </ul>
-    {% if demo %}
-    <form class="dropzone" method="post" action="/cases/{{ case.id }}/samples">
-      {{ csrf_field(csrf) }}
-      <h3 class="h3">{{ t("paper.add") }}</h3>
-      <p class="help">{{ t("paper.demo.help") }}</p>
-      {{ button(t("paper.demo.add"), "secondary") }}
-    </form>
-    {% else %}
-    <form class="dropzone" method="post" action="/cases/{{ case.id }}/papers" enctype="multipart/form-data">
-      {{ csrf_field(csrf) }}
-      <h3 class="h3">{{ t("paper.add") }}</h3>
-      <p class="help">{{ t("paper.drop") }}</p>
-      <label for="file">{{ t("paper.file") }}</label>
+  </nav>
+  {% if demo %}
+  <form class="card add-paper" method="post" action="/cases/{{ case.id }}/samples">
+    {{ csrf_field(csrf) }}
+    <h2>{{ t("paper.add") }}</h2>
+    <p class="help">{{ t("paper.demo.help") }}</p>
+    {{ button(t("paper.demo.add"), "primary" if not selected else "secondary") }}
+  </form>
+  {% else %}
+  <form class="card add-paper" method="post" action="/cases/{{ case.id }}/papers" enctype="multipart/form-data">
+    {{ csrf_field(csrf) }}
+    <h2>{{ t("paper.add") }}</h2>
+    <div class="dropzone" data-dropzone>
       <input id="file" name="file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,application/pdf,.heic" required>
+      <span class="dropzone-icon" aria-hidden="true">{{ icon("upload", 22) }}</span>
+      <label for="file">{{ t("paper.file") }}</label>
+      <span class="help" data-file-name data-kb="{{ t('paper.kb') }}">{{ t("paper.drop") }}</span>
+    </div>
+    <div class="field">
       <label for="kind">{{ t("paper.kind") }}</label>
       <select id="kind" name="kind" required>
         {% for kind in kinds %}<option value="{{ kind }}" {% if not by_kind.get(kind) and loop.first %}selected{% endif %}>{{ t("paper.kind." ~ kind) }}</option>{% endfor %}
       </select>
       <p class="help">{{ t("paper.replaces") }}</p>
-      {{ button(t("paper.upload"), "secondary") }}
-    </form>
-    {% endif %}
-  </nav>
+    </div>
+    {{ button(t("paper.upload"), "secondary") }}
+  </form>
+  {% endif %}
+  </div>
 
   {# ------------------------------------------------ viewer #}
-  <section class="viewer sheet sheet-{{ selected.kind if selected else 'none' }}" aria-labelledby="viewer-title">
+  <section class="viewer card sheet-{{ selected.kind if selected else 'none' }}" aria-labelledby="viewer-title">
   {% if selected %}
     <div class="viewer-head">
       <h2 id="viewer-title">{{ t("paper.kind." ~ selected.kind) }}</h2>
       {% if selected.status in ("added", "failed", "read") %}
-      <form method="post" action="/papers/{{ selected.id }}/read" hx-post="/papers/{{ selected.id }}/read" hx-target="#status-{{ selected.id }}" hx-swap="outerHTML">
+      <form method="post" action="/papers/{{ selected.id }}/read" hx-post="/papers/{{ selected.id }}/read" hx-target="#status-{{ selected.id }}" hx-swap="outerHTML transition:false">
         {{ csrf_field(csrf) }}
-        {{ button(t("paper.read") if selected.status == "added" else t("paper.reread"), "primary" if selected.status == "added" else "secondary") }}
+        {{ button(t("paper.read") if selected.status == "added" else t("paper.reread"), "primary" if selected.status == "added" and not can_confirm else "secondary") }}
       </form>
       {% endif %}
     </div>
@@ -76,10 +116,10 @@
     {% if selected.dark %}<p class="message message-review">{{ t("paper.err.dark") }}</p>{% endif %}
     {% if selected.blurred %}<p class="message message-review">{{ t("paper.err.blur") }}</p>{% endif %}
     <div class="viewer-tools" role="toolbar" aria-label="{{ t('viewer.fit') }}">
-      <button class="btn btn-quiet" type="button" data-zoom="in" aria-label="{{ t('viewer.zoom_in') }}">{{ icon("zoom-in", 20) }}</button>
-      <button class="btn btn-quiet" type="button" data-zoom="out" aria-label="{{ t('viewer.zoom_out') }}">{{ icon("zoom-out", 20) }}</button>
-      <button class="btn btn-quiet" type="button" data-zoom="fit" aria-label="{{ t('viewer.fit') }}">{{ icon("fit", 20) }}</button>
-      <form method="post" action="/papers/{{ selected.id }}/rotate?deg=90" class="inline">{{ csrf_field(csrf) }}{{ button(t("paper.rotate"), "quiet") }}</form>
+      <button class="btn btn-icon" type="button" data-zoom="in" aria-label="{{ t('viewer.zoom_in') }}">{{ icon("zoom-in", 20) }}</button>
+      <button class="btn btn-icon" type="button" data-zoom="out" aria-label="{{ t('viewer.zoom_out') }}">{{ icon("zoom-out", 20) }}</button>
+      <button class="btn btn-icon" type="button" data-zoom="fit" aria-label="{{ t('viewer.fit') }}">{{ icon("fit", 20) }}</button>
+      <form method="post" action="/papers/{{ selected.id }}/rotate?deg=90" class="inline">{{ csrf_field(csrf) }}<button class="btn btn-quiet" type="submit">{{ icon("rotate", 16) }}{{ t("paper.rotate") }}</button></form>
     </div>
     <div class="viewer-frame" data-viewer tabindex="0">
       <div class="viewer-canvas" data-canvas>
@@ -110,24 +150,26 @@
   </section>
 
   {# ------------------------------------------------ claims #}
-  <section class="claims sheet" aria-labelledby="claims-title">
+  <section class="claims card" aria-labelledby="claims-title">
     <h2 id="claims-title">{{ t("claims.title") if selected and selected.status != "failed" else t("claims.title.hand") }}</h2>
+    {% if selected and selected.replayed %}<p class="message message-review small-message" data-replayed>{{ t("claims.replayed") }}</p>{% endif %}
     {% if rows %}
     <p class="verdict-hero verdict-hero-{{ counts.overall }}" role="status">
       <span class="verdict-hero-word">{% if counts.overall == "failed" %}{{ icon("strike") }}{% elif counts.overall == "review" %}{{ icon("bracket-hand") }}{% elif counts.overall == "passed" %}{{ icon("tick") }}{% endif %}{{ t("check." ~ counts.overall) }}</span>
       <span class="small muted">{{ t("claims.summary", passed=counts.passed, open=counts.open) }}</span>
     </p>
-    <table class="claims-table">
-      <thead><tr>
-        <th scope="col">{{ t("claims.col.field") }}</th>
-        <th scope="col">{{ t("claims.col.value") }}</th>
-        <th scope="col">{{ t("claims.col.check") }}</th>
+    <table class="claims-table" role="table">
+      <thead role="rowgroup"><tr role="row">
+        <th scope="col" role="columnheader">{{ t("claims.col.field") }}</th>
+        <th scope="col" role="columnheader">{{ t("claims.col.check") }}</th>
+        <th scope="col" role="columnheader">{{ t("claims.col.value") }}</th>
       </tr></thead>
-      <tbody>
+      <tbody role="rowgroup">
       {% for r in rows %}
-        <tr id="row-{{ r.id }}" class="row row-{{ r.status }}{% if r.animate %} redpen-animate{% endif %}" data-claim="{{ r.id }}" tabindex="{{ 0 if loop.first else -1 }}">
-          <th scope="row">{{ r.label }}</th>
-          <td class="value-cell">
+        <tr id="row-{{ r.id }}" class="row row-{{ r.status }}{% if r.animate %} redpen-animate{% endif %}" data-claim="{{ r.id }}" role="row" tabindex="{{ 0 if loop.first else -1 }}">
+          <th scope="row" role="rowheader">{{ r.label }}</th>
+          <td class="check-cell" role="cell">{{ verdict(t, r.status) }}</td>
+          <td class="value-cell" role="cell">
             {% if r.corrected %}
               <span class="struck" title="{{ t('claims.original') }}"><span class="visually-hidden">{{ t("claims.original") }}: </span>{% if r.display_read %}<span class="num">{{ r.display_read }}</span>{% else %}{{ t("claims.notfound") }}{% endif %}<svg class="strike-line" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><path d="M0 6 C 15 3, 30 8, 50 5 S 85 3, 100 6"/></svg></span>
               <span class="hand">{% if r.display %}{{ r.display }}{% endif %}</span>
@@ -164,10 +206,9 @@
             </details>
             {% endif %}
             {% if r.rereadable %}
-            <form method="post" action="/claims/{{ r.id }}/reread" class="inline">{{ csrf_field(csrf) }}{{ button(t("claims.reread"), "quiet") }}</form>
+            <form method="post" action="/claims/{{ r.id }}/reread" class="inline">{{ csrf_field(csrf) }}<button class="btn btn-quiet btn-sm" type="submit">{{ icon("refresh", 14) }}{{ t("claims.reread") }}</button></form>
             {% endif %}
           </td>
-          <td class="check-cell">{{ verdict(t, r.status) }}</td>
         </tr>
       {% endfor %}
       </tbody>
@@ -178,30 +219,9 @@
   </section>
 </div>
 
-{# ------------------------------------------------ confirm #}
-<section class="confirm sheet" aria-labelledby="confirm-title">
-  <h2 id="confirm-title" class="visually-hidden">{{ t("confirm.button") }}</h2>
-  {% if case.confirmed_at %}
-    <div class="confirmed">
-      {{ stamp(t, t.date(case.confirmed_at[:10]), animate=request.query_params.get("stamped") == "1") }}
-      <p>{{ t("confirm.done", at=t.date(case.confirmed_at[:10])) }}</p>
-    </div>
-  {% else %}
-    {% if not has_invoice %}<p class="muted">{{ t("confirm.needs_papers") }}</p>
-    {% elif unresolved %}<p class="message message-failed">{{ t("confirm.blocked", n=unresolved | length) }}</p>{% endif %}
-    <form method="post" action="/cases/{{ case.id }}/confirm">
-      {{ csrf_field(csrf) }}
-      {{ button(t("confirm.button"), "primary", disabled=not can_confirm) }}
-    </form>
-  {% endif %}
-</section>
-
-{# ------------------------------------------------ clock strip #}
-{% include "_clock.html" with context %}
-
 {# ------------------------------------------------ terms and payments #}
 <div class="below">
-<section class="sheet" id="terms" aria-labelledby="terms-title">
+<section class="card" id="terms" aria-labelledby="terms-title">
   <h2 id="terms-title">{{ t("settings.case.title") }}</h2>
   <form method="post" action="/cases/{{ case.id }}/settings" class="form-grid">
     {{ csrf_field(csrf) }}
@@ -236,10 +256,10 @@
   </form>
 </section>
 
-<section class="sheet" id="payments" aria-labelledby="payments-title">
+<section class="card" id="payments" aria-labelledby="payments-title">
   <h2 id="payments-title">{{ t("payments.title") }}</h2>
   {% if payments %}
-  <table>
+  <table class="plain">
     <thead><tr><th scope="col">{{ t("payments.date") }}</th><th scope="col" class="num">{{ t("payments.amount") }}</th><th scope="col"><span class="visually-hidden">{{ t("payments.delete") }}</span></th></tr></thead>
     <tbody>{% for p in payments %}
       <tr><td class="num">{{ t.date(p.paid_on) }}</td><td class="num">{{ p.amount_paise | inr }}</td>
@@ -255,13 +275,13 @@
   </form>
 </section>
 
-<section class="sheet reading" aria-labelledby="elig-title">
+<section class="card" aria-labelledby="elig-title">
   <h2 id="elig-title">{{ t("elig.title") }}</h2>
   <p>{{ t("elig.body") }}</p>
   <p class="muted">{{ t("legal.notice") }}</p>
 </section>
 
-<section class="sheet reading" id="delete" aria-labelledby="delete-title">
+<section class="card card-danger" id="delete" aria-labelledby="delete-title">
   <h2 id="delete-title">{{ t("delete.case") }}</h2>
   <p>{{ t("delete.confirm") }}</p>
   <form method="post" action="/cases/{{ case.id }}/delete">

@@ -4,9 +4,10 @@
 {% block content %}
 <div class="reading">
   <h1>{{ t("rules.title") }}</h1>
-  <p>{{ t("rules.intro") }}</p>
+  <p class="lede">{{ t("rules.intro") }}</p>
+  <p class="muted small">{{ t("legal.notice") }}</p>
 </div>
-<div class="table-wrap">
+<div class="card card-flush table-wrap" tabindex="0">
 <table>
   <thead><tr>
     <th scope="col">{{ t("rules.col.id") }}</th>
@@ -22,17 +23,17 @@
       <td class="num">{{ r.version }}</td>
       <td>{{ t("rules.severity." ~ r.severity) if r.severity in ("blocking", "warning") else r.severity }}</td>
       <td>{{ t("rules.basis." ~ r.status) }}</td>
-      <td class="small">{{ r.source }}</td>
+      <td class="small rules-source">{{ r.source }}</td>
     </tr>
   {% endfor %}
   </tbody>
 </table>
 </div>
 
-<section class="sheet reading" id="bank" aria-labelledby="bank-title">
+<section class="card reading stack-top" id="bank" aria-labelledby="bank-title">
   <h2 id="bank-title">{{ t("rules.bank.title") }}</h2>
   {% if error %}<p class="message message-failed" role="alert">{{ t(error) | code }}</p>{% endif %}
-  <table>
+  <div class="table-wrap" tabindex="0"><table>
     <thead><tr><th scope="col">{{ t("rules.bank.from") }}</th><th scope="col" class="num">{{ t("rules.bank.percent") }}</th><th scope="col">{{ t("rules.col.source") }}</th><th scope="col">{{ t("rules.bank.confirmed") }}</th></tr></thead>
     <tbody>
     {% for rate in rates %}
@@ -57,7 +58,7 @@
       </tr>
     {% endfor %}
     </tbody>
-  </table>
+  </table></div>
   <h3>{{ t("rules.bank.add") }}</h3>
   <form method="post" action="/rules/bank-rate">
     {{ csrf_field(csrf) }}

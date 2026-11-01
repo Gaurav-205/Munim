@@ -4,6 +4,10 @@
 <button class="btn btn-{{ kind }}" type="{{ type }}"{% if name %} name="{{ name }}" value="{{ value }}"{% endif %}{% if disabled %} disabled aria-disabled="true"{% endif %} {{ extra }}>{{ label }}</button>
 {%- endmacro %}
 
+{% macro back_link(href, label) -%}
+<a class="back-link" href="{{ href }}">{{ icon("arrow-left", 16) }}<span>{{ label }}</span></a>
+{%- endmacro %}
+
 {% macro csrf_field(token) -%}
 <input type="hidden" name="csrf_token" value="{{ token }}">
 {%- endmacro %}
@@ -17,11 +21,11 @@
 {%- endmacro %}
 
 {% macro verdict(t, status) -%}
-<span class="verdict verdict-{{ status }}">
-  {%- if status == "passed" %}{{ icon("tick") }}<span>{{ t("check.passed") }}</span>
-  {%- elif status == "failed" %}{{ icon("strike") }}<span>{{ t("check.failed") }}</span>
-  {%- elif status == "review" %}{{ icon("bracket-hand") }}<span>{{ t("check.review") }}</span>
-  {%- elif status == "accepted" %}{{ icon("tick") }}<span>{{ t("check.accepted") }}</span>
+<span class="badge verdict verdict-{{ status }}">
+  {%- if status == "passed" %}{{ icon("tick", 14) }}<span>{{ t("check.passed") }}</span>
+  {%- elif status == "failed" %}{{ icon("strike", 14) }}<span>{{ t("check.failed") }}</span>
+  {%- elif status == "review" %}{{ icon("bracket-hand", 14) }}<span>{{ t("check.review") }}</span>
+  {%- elif status == "accepted" %}{{ icon("tick", 14) }}<span>{{ t("check.accepted") }}</span>
   {%- elif status == "skipped" %}<span>{{ t("check.skipped") }}</span>
   {%- else %}<span>{{ t("check.none") }}</span>{% endif -%}
 </span>

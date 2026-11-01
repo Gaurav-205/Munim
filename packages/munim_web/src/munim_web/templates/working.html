@@ -1,12 +1,13 @@
 {% extends "base.html" %}
+{% from "components/macros.html" import back_link %}
 {% block title %}{{ t("working.title") }} | {{ case.title }}{% endblock %}
 {% block content %}
 <div class="reading">
-  <p><a href="/cases/{{ case.id }}">{{ t("working.back") }}</a></p>
+  {{ back_link("/cases/" ~ case.id, t("working.back")) }}
   <h1>{{ t("working.title") }}</h1>
   <p>{{ t("working.intro") }}</p>
   {% if clock.delivered %}<p>{{ t("clock.delivered") }}: <span class="num">{{ t.date(clock.delivered) }}</span>. {{ t("clock.as_on", as_on_date=clock.as_on) }}.</p>{% endif %}
 </div>
-{% include "_working_table.html" with context %}
+<div class="card">{% include "_working_table.html" with context %}</div>
 {% if unconfirmed %}<p class="message message-review reading">{{ t("clock.rate.unconfirmed") }} <a href="/rules#bank">{{ t("rules.bank.title") }}</a></p>{% endif %}
 {% endblock %}

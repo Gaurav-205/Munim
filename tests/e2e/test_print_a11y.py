@@ -43,6 +43,10 @@ def test_printed_evidence_file_is_a4_with_the_stamp_and_amount(
     page.emulate_media(media="print")
     reader = PdfReader(io.BytesIO(page.pdf(format="A4", prefer_css_page_size=True)))
     assert len(reader.pages) >= 4
+    # Each original shares a sheet with its heading: no sheet holds the heading alone.
+    originals = [p for p in reader.pages if "The papers" in (p.extract_text() or "")]
+    assert len(originals) == 3
+    assert all(p.images for p in originals)
     width, height = (float(v) for v in reader.pages[0].mediabox.upper_right)
     assert (round(width), round(height)) == (595, 842)  # A4 in points
     text = "\n".join(p.extract_text() for p in reader.pages)
@@ -56,9 +60,14 @@ def test_printed_evidence_file_is_a4_with_the_stamp_and_amount(
 def test_pages_have_no_serious_accessibility_violations(page: Page, server: str, lang: str) -> None:
     case_id = confirmed_case(page, server)
     page.context.add_cookies([{"name": "munim_lang", "value": lang, "url": server}])
+    page.emulate_media(reduced_motion="reduce")  # axe must not read colours mid-entrance
     axe = Axe()
     for path in (
         "/",
+        "/cases",
+        "/cases/new",
+        f"/cases/{case_id}/discrepancies",
+        f"/cases/{case_id}/samadhaan",
         f"/cases/{case_id}",
         f"/cases/{case_id}/dossier",
         f"/cases/{case_id}/working",
