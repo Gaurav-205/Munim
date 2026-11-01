@@ -42,7 +42,8 @@ class LineDiscrepancy:
     challan_quantity: str | None
     status: str  # "match" | "qty_mismatch" | "unmatched" | "unit_mismatch"
     match_score: int
-    notes: str
+    note_key: str  # i18n key; the core holds no display text
+    note_params: Mapping[str, str]
 
 
 @dataclass(frozen=True, slots=True)
@@ -111,7 +112,8 @@ def build_discrepancy_map(
                     challan_quantity=None,
                     status="unmatched",
                     match_score=best_score,
-                    notes=f"Item '{inv_desc}' not found on delivery challan",
+                    note_key="discrepancy.note.missing",
+                    note_params={"description": inv_desc},
                 )
             )
             continue
@@ -136,7 +138,8 @@ def build_discrepancy_map(
                     challan_quantity=ch_qty_str,
                     status="qty_mismatch",
                     match_score=best_score,
-                    notes="Unparseable quantity on invoice or challan",
+                    note_key="discrepancy.note.unparseable",
+                    note_params={},
                 )
             )
             continue
@@ -160,7 +163,8 @@ def build_discrepancy_map(
                     challan_quantity=ch_qty_str,
                     status="unit_mismatch",
                     match_score=best_score,
-                    notes=f"Incompatible units: {inv.get('unit')} vs {ch.get('unit')}",
+                    note_key="discrepancy.note.units",
+                    note_params={"invoice": str(inv.get("unit")), "challan": str(ch.get("unit"))},
                 )
             )
         elif converted_ch_qty == inv_qty:
@@ -178,7 +182,8 @@ def build_discrepancy_map(
                     challan_quantity=ch_qty_str,
                     status="match",
                     match_score=best_score,
-                    notes="Exact quantity delivered and billed",
+                    note_key="discrepancy.note.match",
+                    note_params={},
                 )
             )
         else:
@@ -196,7 +201,8 @@ def build_discrepancy_map(
                     challan_quantity=ch_qty_str,
                     status="qty_mismatch",
                     match_score=best_score,
-                    notes=f"Delivered {ch_qty_str} vs Billed {inv_qty_str}",
+                    note_key="discrepancy.note.qty",
+                    note_params={"delivered": ch_qty_str, "billed": inv_qty_str},
                 )
             )
 

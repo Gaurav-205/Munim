@@ -59,17 +59,17 @@ def test_real_design_md_has_the_known_ratios_and_passes() -> None:
 
     assert result.returncode == 0, result.stdout + result.stderr
     out = result.stdout
-    assert "ink on bond: 16.29 (threshold 4.5, claimed 16.3) ok" in out
-    assert "hairline-strong on sheet: 3.59 (threshold 3.0, claimed 3.59) ok" in out
-    assert "tick on tick-wash: 4.59 (threshold 4.5, claimed 4.6) ok" in out
+    assert "ink on bond: 18.97 (threshold 4.5, claimed 19.0) ok" in out
+    assert "hairline-strong on sheet: 4.54 (threshold 3.0, claimed 4.5) ok" in out
+    assert "tick on tick-wash: 4.79 (threshold 4.5, claimed 4.8) ok" in out
     assert "FAIL" not in out
     assert out.rstrip().endswith("problems")
     assert ", 0 problems" in out.splitlines()[-1]
-    # Every note form of the real table is read: 21 pairs, including "White text on it
-    # 11.5:1" (sheet on ballpoint-pressed) and "Text on it is `ink` (12.9:1)".
-    assert out.splitlines()[-1] == "check_contrast: 21 pairs checked, 0 problems"
-    assert "sheet on ballpoint-pressed: 11.45 (threshold 4.5, claimed 11.5) ok" in out
-    assert "ink on carbon-pink: 12.89 (threshold 4.5, claimed 12.9) ok" in out
+    # Every note form of the real table is read: 30 pairs, including "White text on it
+    # 4.6:1" (sheet on ballpoint-pressed) and "Text on it is `ink`".
+    assert out.splitlines()[-1] == "check_contrast: 30 pairs checked, 0 problems"
+    assert "sheet on ballpoint-pressed: 4.63 (threshold 4.5, claimed 4.6) ok" in out
+    assert "ink on carbon-pink: 13.24 (threshold 4.5, claimed none) ok" in out
 
 
 # ------------------------------------------------------------------ synthetic files

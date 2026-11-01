@@ -35,7 +35,12 @@ HEX_RE = re.compile(r"^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{4}|[0-9A-Fa-f]{6}|[0-9A-Fa
 UNIT_RE = re.compile(r"^-?\d*\.?\d+([a-z%]*)$")
 TYPE_FIELDS = ("size", "line", "weight", "tracking")
 MOTION_FIELDS = ("duration", "easing", "from", "to")
-FAMILY_KEYS = (("family-ui", "--font-ui"), ("family-hand", "--font-hand"))
+FAMILY_KEYS = (
+    ("family-ui", "--font-ui"),
+    ("family-display", "--font-display"),
+    ("family-mono", "--font-mono"),
+    ("family-hand", "--font-hand"),
+)
 FAMILY_NAMES = frozenset(key for key, _ in FAMILY_KEYS)
 
 
@@ -129,6 +134,16 @@ def build_css(data: Mapping[str, Any]) -> str:
     for raw_name, value in _section(data, "rounded").items():
         name = _name(raw_name, "rounded")
         out.append(f"  --radius-{name}: {_css_value(value, f'rounded.{name}')};\n")
+
+    for group, prop in (("shadow", "shadow"), ("gradient", "gradient")):
+        tokens = data.get(group, {})
+        if not isinstance(tokens, Mapping):
+            raise DesignError(f"front matter: '{group}' must be a mapping")
+        if tokens:
+            out.append(f"\n  /* {group.capitalize()}s */\n")
+        for raw_name, value in tokens.items():
+            name = _name(raw_name, group)
+            out.append(f"  --{prop}-{name}: {_css_value(value, f'{group}.{name}')};\n")
 
     spacing = _section(data, "spacing")
     base = _css_value(spacing.get("base", "4px"), "spacing.base")

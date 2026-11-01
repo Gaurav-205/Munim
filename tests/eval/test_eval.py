@@ -163,3 +163,17 @@ def test_run_eval_writes_replay_json_not_latest(
     assert run_eval.main(["--case", "demo", "--date", "2026-10-13"]) == 0
     assert (tmp_path / "replay.json").is_file()
     assert not (tmp_path / "latest.json").exists()
+
+
+def test_real_run_refuses_the_replay_provider(monkeypatch: pytest.MonkeyPatch) -> None:
+    run_eval = load_script(ROOT / "eval" / "run_eval.py")
+    monkeypatch.setenv("MUNIM_PROVIDER", "replay")
+    assert run_eval.main(["--real"]) == 2
+
+
+def test_real_report_stays_in_the_ignored_folder() -> None:
+    run_eval = load_script(ROOT / "eval" / "run_eval.py")
+    # The report holds crops and values from real papers, so it must never reach eval/reports.
+    assert run_eval.report_path("gemini", real=True) == ROOT / "eval" / "real" / "report.json"
+    assert run_eval.report_path("gemini", real=False) == ROOT / "eval" / "reports" / "latest.json"
+    assert run_eval.report_path("replay", real=False) == ROOT / "eval" / "reports" / "replay.json"

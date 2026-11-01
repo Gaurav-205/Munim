@@ -18,6 +18,8 @@ colors:
   ink: "#15171C"
 typography:
   family-ui: "Mukta, 'Noto Sans Devanagari', sans-serif"
+  family-display: "'Archivo Black', Mukta, sans-serif"
+  family-mono: "'Space Mono', monospace"
   family-hand: "Kalam, cursive"
   body: { family: ui, size: 16px, line: 26px, weight: 400 }
   amount: { family: ui, size: 40px, line: 44px, weight: 600, tracking: -0.01em, features: [tnum] }
@@ -46,6 +48,8 @@ EXPECTED_BODY = """\
 
   /* Typography */
   --font-ui: Mukta, 'Noto Sans Devanagari', sans-serif;
+  --font-display: 'Archivo Black', Mukta, sans-serif;
+  --font-mono: 'Space Mono', monospace;
   --font-hand: Kalam, cursive;
   --type-body-size: 16px;
   --type-body-line: 26px;
@@ -92,6 +96,18 @@ def test_generates_every_token_family_in_front_matter_order(tmp_path: Path) -> N
     header = load_script("build_tokens").HEADER
     assert "Do not edit by hand" in header
     assert out.read_text(encoding="utf-8") == header + EXPECTED_BODY
+
+
+def test_shadow_and_gradient_groups_become_tokens(tmp_path: Path) -> None:
+    module = load_script("build_tokens")
+    data = module.read_front_matter(write_design(tmp_path))
+    data["shadow"] = {"card": "0 1px 2px rgba(0, 0, 0, 0.1)"}
+    data["gradient"] = {"night": "linear-gradient(135deg, #000000 0%, #111111 100%)"}
+
+    css = module.build_css(data)
+
+    assert "--shadow-card: 0 1px 2px rgba(0, 0, 0, 0.1);" in css
+    assert "--gradient-night: linear-gradient(135deg, #000000 0%, #111111 100%);" in css
 
 
 def test_output_is_deterministic(tmp_path: Path) -> None:

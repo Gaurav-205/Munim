@@ -121,9 +121,10 @@ def build_samadhaan_packet(inp: SamadhaanInput) -> SamadhaanPacket:
     as_on_str = inp.as_on_date.isoformat()
 
     # Statement of claim (portal maximum 1000 characters)
+    supplier_ref = f"Supplier ({inp.supplier_udyam})" if inp.supplier_udyam else "Supplier"
     statement_raw = (
         f"Application under Section 18 of the MSMED Act, 2006 for delayed payment. "
-        f"Supplier ({inp.supplier_udyam}) supplied under Invoice {inp.invoice_number} "
+        f"{supplier_ref} supplied under Invoice {inp.invoice_number} "
         f"dated {inv_dt_str} (PO: {po_num_str}). Delivery accepted on {deliv_dt_str}. "
         f"Statutory payment due date was {due_dt_str}. "
         f"Buyer has failed to clear payment as on {as_on_str}. "

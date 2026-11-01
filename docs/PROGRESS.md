@@ -189,4 +189,30 @@ Commit `f25d567` (2026-10-12 23:49:30 +0530, "docs: add Munim planning pack prep
 - Not done: T6.9 needs real papers and a live model on the owner's machine.
 - Open question for the owner: the evidence file shows a Section 43B(h) verdict and an estimated tax at 25%/30% (added in v1.2), while PRD 49 and DOMAIN_RULES 211 exclude 43B(h) and README says it is not covered.
 
+### 2026-11-01 Full UI redesign (design system v2)
+- Owner asked for a modern redesign and chose: same FastAPI, Jinja and htmx app, new design contract, plus a landing page, dashboard figures and motion, no dark mode. Branch `feat/redesign`, not pushed.
+- 5c5b9c1 DESIGN.md v2, tokens (shadow, gradient, night surfaces), `design_lint` rules 2, 3 and 8 changed to match, Inter 5.1.0 and Lucide 0.460.0 vendored. No JS or CSS framework; no build step.
+- New routes: `/` landing, `/cases` list with totals, `/cases/new`. Every template and `app.css` rebuilt. Delete now redirects to `/cases?deleted=1`.
+- Bugs fixed on the way: copy buttons copied nothing from inputs (Samadhaan fields); htmx did not swap 4xx and 5xx pages, so refused forms looked dead; a failed new-case form hid the case list; `icon("download")` drew nothing; statement of claim said "Supplier ()" without a Udyam number; dossier boxes printed dashed for every status; each original left a heading-only sheet; strike line stopped at 120px.
+- design-reviewer: 5 high, 8 medium, 4 low. All fixed except: English core notes on the Hindi discrepancy page and raw values on `/evaluation` (landing copy now says the Hindi is a draft; core still holds these strings), and the printed invoice total with no rupee sign, kept because it is the value as read.
+- A flake appeared once (status stuck, 20s): polling swaps are now excluded from view transitions and `::view-transition` takes no pointer events. Three browser runs clean after that.
+- Evidence: `make check` exit 0 (1036 passed; core 97.80%/94.56%, overall 92.56%). `pytest -m "e2e or a11y" --browser chromium`: 17 passed, three runs. Browser journey with `demo_papers` set: amount ₹5,40,976.71, stamp shown, no console errors. `make eval`: validate_report 0 problems. `make screens`: 30 screenshots.
+- `check_repo_files` R3 refused a GSTIN-shaped sample on the landing page once it was tracked, so 0ee6962 failed `make check` until the next commit. The drawn sample now corrects a PO number (rule X-PO-REF); the guard was not changed.
+- Not run: Firefox (cannot launch in this sandbox; CI runs it), production deploy, GitNexus (not installed; callers checked by text search).
+- Open: `make eval` regenerates `eval/reports/replay.json` with wrong-and-passed 11 instead of the committed 13 (rule changes before this branch, not the UI). Report left as committed; needs a decision.
+
+### 2026-11-01 Picked up after new session: next task T6.9
+- T6.9 cannot be done here: `ollama` is not installed (`ollama not found`) and it needs real papers. Smallest alternative taken: 952d026 adds `run_eval.py --real` (promised by AI_SPEC, missing) and `docs/EVAL_REAL.md` marked "not run yet". T6.9 stays open.
+- 9935c3f: discrepancy line notes moved from English core strings to i18n keys; stamp notes removed; `/evaluation` shows field labels. Test `test_discrepancy_page_in_hindi_has_no_english_notes` failed first, then passed.
+- d55f14b: decision on the open replay.json question: regenerated, because the report must match the code. Same 26 wrong values; caught 13 to 15, wrong and passed 13 to 11 of 660. README and SUBMISSION updated.
+- Evidence: `make check` exit 0 (1039 passed; core 97.86%/94.82%, overall 92.58%). `pytest -m "e2e or a11y" --browser chromium`: 17 passed. `make eval`: validate_report 0 problems.
+- Not run: Firefox (CI only), GitNexus (not installed; callers checked by text search), push or deploy (owner).
+
+### 2026-11-02 VoiceBox restyle (design system v3)
+- Owner pasted the VoiceBox design system. Branch `feat/voicebox`, cut from `feat/redesign`, not pushed. b0f689a: DESIGN.md v3, tokens, Archivo Black, Work Sans and Space Mono vendored (@fontsource 5.1.0), Inter removed, design lint now requires square corners and allows capitals on label styles.
+- Departures from VoiceBox, on purpose: colours that fail check_contrast take the nearest passing shade (`#EF4444` stays for rules only; red text is `#B91C1C`, red hover `#DC2626`, muted `#525252`, input edge `#737373`, tick `#15803D`); red-pen failures and carbon sheet colours stay, so red can appear more than once per view; Hindi display text is Mukta 600; Work Sans 900 draws the rupee sign, which Archivo Black lacks.
+- design-reviewer: 5 high, 11 medium, 3 low. All high and medium fixed, 2 of 3 low fixed plus the landing stamp. Worst: printing the evidence file and working page clipped the interest and closing columns. New tests `test_printed_tables_fit_the_a4_width` and `test_long_case_name_does_not_scroll_sideways_on_a_phone` failed first, then passed.
+- Evidence: `make check` exit 0 (1044 passed; core 98.01%/95.08%, overall 92.63%; design_lint 0 problems; check_contrast 30 pairs, 0 problems). `pytest -m "e2e or a11y" --browser chromium`: 20 passed. `make screens`: 30 full-page screenshots.
+- Not run: Firefox (CI only), GitNexus (not installed; callers checked by text search), push or deploy. The print fix was checked by measuring layout at A4 width and running the PDF test; the printed pages were not viewed after the fix. Hindi strings added here are a draft.
+
 STATUS: READY FOR RELEASE (v0.1.0)

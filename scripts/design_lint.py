@@ -4,20 +4,20 @@ Rules (numbers as in DESIGN.md section 12; every message cites section 7):
 
 1. Raw hex colours outside tokens.css (CSS declaration values; colour and style
    attributes in templates; 6- or 8-digit hex in JS string literals).
-2. Shadows, blurs and gradients: box-shadow (except a focus ring marked
-   ``/* focus-ring */`` on the same line, or ``none``), text-shadow,
-   backdrop-filter, drop-shadow()/blur() filters, and every *-gradient().
-3. border-radius above 6px, any percentage, and 9999px pills.
-4. text-transform: uppercase outside a ``.stamp`` selector (every selector of a list
-   must target ``.stamp``, and ``:not(.stamp)`` does not count); letter-spacing above
-   0.02em.
+2. Shadows, blurs and gradients: box-shadow (except a --shadow-* token, a focus ring
+   marked ``/* focus-ring */`` on the same line, or ``none``), text-shadow,
+   backdrop-filter, drop-shadow()/blur() filters, and every raw *-gradient()
+   outside tokens.css (gradients are tokens: var(--gradient-*)).
+3. border-radius above 0, any percentage, and raw 9999px pills. Use a var(--radius-*) token.
+4. text-transform: uppercase outside the stamp and the label styles (buttons, badges,
+   form labels, table headers, fact terms, stat labels; every selector of a list must
+   target one, and ``:not(.stamp)`` does not count); letter-spacing above 0.12em.
 5. Emoji, arrows, the em dash and the middle dot used as a separator, in i18n
    values, template text and CSS strings.
 6. Font families other than the declared ones.
 7. Devanagari in template text or attributes outside an element whose nearest ``lang``
    attribute is Hindi.
-8. IntersectionObserver, scroll-driven animations, and @keyframes that animate
-   opacity together with translate (fade-and-slide entrances).
+8. IntersectionObserver and scroll-driven animations.
 9. Banned words in i18n values, template text and CSS strings.
 
 With no arguments the default roots of the web package (templates, static/css,
@@ -61,13 +61,20 @@ VENDOR_PARTS = ("static", "js", "vendor")
 TOKENS_FILE = "tokens.css"
 SECTION = "DESIGN.md section 7"
 
-MAX_RADIUS_PX = Fraction(6)
+MAX_RADIUS_PX = Fraction(0)
 PILL_RADIUS_PX = Fraction(9999)
-MAX_TRACKING_EM = Fraction(2, 100)
+MAX_TRACKING_EM = Fraction(12, 100)
 ROOT_PX = Fraction(16)
 
 ALLOWED_FAMILIES = frozenset(
     {
+        "work sans",
+        "archivo black",
+        "space mono",
+        "impact",
+        "arial black",
+        "courier new",
+        "monospace",
         "mukta",
         "kalam",
         "ibm plex sans",
@@ -78,6 +85,8 @@ ALLOWED_FAMILIES = frozenset(
         "inherit",
         "var(--font-ui)",
         "var(--font-hand)",
+        "var(--font-display)",
+        "var(--font-mono)",
     }
 )
 COLOUR_ATTRS = frozenset(
@@ -116,13 +125,12 @@ JS_TOKEN_RE = re.compile(
 URL_RE = re.compile(r"url\([^)]*\)?", re.I)
 PROP_RE = re.compile(r"-{0,2}[A-Za-z_][\w-]*")
 CSS_ESCAPE_RE = re.compile(r"\\([0-9a-fA-F]{1,6})\s?|\\(.)", re.S)
+SHADOW_TOKEN_RE = re.compile(r"var\(--shadow-[a-z0-9-]+\)")
 FOCUS_MARKER_RE = re.compile(r"/\*\s*focus-ring\s*\*/")
 GRADIENT_RE = re.compile(r"\b((?:repeating-)?(?:linear|radial|conic)-gradient)\s*\(", re.I)
 FILTER_FN_RE = re.compile(r"\b(drop-shadow|blur)\s*\(", re.I)
 RADIUS_PROP_RE = re.compile(r"(?:-webkit-|-moz-)?border(?:-[a-z]+)*-radius")
 LENGTH_RE = re.compile(r"(?<![\w.#-])(-?(?:\d+\.?\d*|\.\d+))([a-zA-Z%]*)")
-KEYFRAMES_RE = re.compile(r"@(?:-webkit-|-moz-)?keyframes\b", re.I)
-TRANSLATE_RE = re.compile(r"\btranslate(?:3d|x|y|z)?\s*\(", re.I)
 SCROLL_FN_RE = re.compile(r"(?<![\w-])(scroll|view)\s*\(", re.I)
 SCROLL_PROPS = frozenset(
     {
@@ -151,7 +159,10 @@ JS_STYLE_RE = re.compile(
     re.I,
 )
 INTERSECTION_RE = re.compile(r"\bIntersectionObserver\b")
-STAMP_SELECTOR_RE = re.compile(r"\.stamp(?![\w-])")  # .stamp, not .stamped-row
+# .stamp, not .stamped-row; the bare element names are the label styles of DESIGN.md section 3.
+CAPS_SELECTOR_RE = re.compile(
+    r"\.(?:stamp|btn|badge|stat-label)(?![\w-])|(?<![\w.#-])(?:label|legend|th|dt)(?![\w-])"
+)
 
 TEMPLATE_COMMENT_RE = re.compile(r"\{#.*?#\}|<!--.*?-->", re.S)
 JINJA_RE = re.compile(r"\{\{.*?\}\}|\{%.*?%\}", re.S)
@@ -424,12 +435,12 @@ def radius_problems(value: str) -> Iterator[tuple[int, str]]:
         elif unit in ("rem", "em"):
             px = number * ROOT_PX
         else:
-            yield match.start(), f"border-radius {shown} uses '{unit}'; use px, at most 6px"
+            yield match.start(), f"border-radius {shown} uses '{unit}'; use px, at most 16px"
             continue
         if px >= PILL_RADIUS_PX:
-            yield match.start(), f"border-radius {shown} makes a pill; at most 6px"
+            yield match.start(), f"border-radius {shown} makes a pill; use var(--radius-pill)"
         elif px > MAX_RADIUS_PX:
-            yield match.start(), f"border-radius {shown} is above 6px"
+            yield match.start(), f"border-radius {shown} is above 0; radii are tokens"
 
 
 def tracking_problem(value: str, unitless_is_px: bool = False) -> str | None:
@@ -450,7 +461,7 @@ def tracking_problem(value: str, unitless_is_px: bool = False) -> str | None:
     else:
         return f"letter-spacing {text} uses '{unit or 'no unit'}'; use em, at most 0.02em"
     if em > MAX_TRACKING_EM:
-        return f"letter-spacing {text} is above 0.02em"
+        return f"letter-spacing {text} is above 0.12em"
     return None
 
 
@@ -490,12 +501,12 @@ def without_not(selector: str) -> str:
     return "".join(out)
 
 
-def stamp_only(prelude: str) -> bool:
-    """True when every selector in the list targets .stamp (outside a :not())."""
+def caps_allowed(prelude: str) -> bool:
+    """True when every selector in the list targets a capitals style (outside a :not())."""
     if prelude.lstrip().startswith("@"):
         return False
     return all(
-        STAMP_SELECTOR_RE.search(without_not(selector)) for _, selector in split_top_level(prelude)
+        CAPS_SELECTOR_RE.search(without_not(selector)) for _, selector in split_top_level(prelude)
     )
 
 
@@ -516,8 +527,7 @@ def family_problems(value: str) -> Iterator[tuple[int, str]]:
             lead = len(part) - len(part.lstrip())
             yield (
                 index + lead,
-                f"font family {part.strip()} is not declared; use var(--font-ui) or "
-                "var(--font-hand)",
+                f"font family {part.strip()} is not declared; use a var(--font-*) token",
             )
 
 
@@ -536,7 +546,6 @@ def font_shorthand_families(value: str) -> tuple[int, str] | None:
 
 def check_decls(src: Source, decls: list[Decl], allow_hex: bool = False) -> None:
     """Apply the CSS rules (1, 2, 3, 4, 5, 6, 8, 9) to parsed declarations."""
-    keyframes: dict[int, tuple[str, set[str]]] = {}
     for decl in decls:
         prop = decl.prop
         clean = blank_strings_and_urls(decl.value)
@@ -550,14 +559,18 @@ def check_decls(src: Source, decls: list[Decl], allow_hex: bool = False) -> None
                     f"raw hex colour {match.group()}; use a colour token through var(--color-...)",
                 )
 
-        if prop in ("box-shadow", "-webkit-box-shadow", "-moz-box-shadow") and lowered != "none":
+        if (
+            prop in ("box-shadow", "-webkit-box-shadow", "-moz-box-shadow")
+            and lowered != "none"
+            and not SHADOW_TOKEN_RE.fullmatch(lowered)
+        ):
             lines = range(src.line_of(decl.start), src.line_of(decl.end) + 1)
             if not any(FOCUS_MARKER_RE.search(src.raw_line(n)) for n in lines):
                 src.add(
                     decl.start,
                     2,
-                    "box-shadow is not allowed; only a focus ring marked /* focus-ring */ "
-                    "on the same line",
+                    "box-shadow must be a var(--shadow-*) token, or a focus ring marked "
+                    "/* focus-ring */ on the same line",
                 )
         if prop == "text-shadow" and lowered != "none":
             src.add(decl.start, 2, "text-shadow is not allowed")
@@ -566,7 +579,7 @@ def check_decls(src: Source, decls: list[Decl], allow_hex: bool = False) -> None
         if prop in ("filter", "-webkit-filter"):
             for match in FILTER_FN_RE.finditer(clean):
                 src.add(decl.value_start + match.start(), 2, f"{match.group(1)}() is not allowed")
-        for match in GRADIENT_RE.finditer(clean):
+        for match in () if allow_hex else GRADIENT_RE.finditer(clean):
             src.add(decl.value_start + match.start(), 2, f"{match.group(1)}() is not allowed")
 
         if RADIUS_PROP_RE.fullmatch(prop):
@@ -576,9 +589,13 @@ def check_decls(src: Source, decls: list[Decl], allow_hex: bool = False) -> None
         if (
             prop == "text-transform"
             and "uppercase" in lowered
-            and not any(stamp_only(prelude) for prelude, _ in decl.scopes)
+            and not any(caps_allowed(prelude) for prelude, _ in decl.scopes)
         ):
-            src.add(decl.start, 4, "text-transform: uppercase is allowed only inside .stamp")
+            src.add(
+                decl.start,
+                4,
+                "text-transform: uppercase is allowed only on the stamp and label styles",
+            )
         if prop == "letter-spacing":
             problem = tracking_problem(clean)
             if problem:
@@ -606,24 +623,6 @@ def check_decls(src: Source, decls: list[Decl], allow_hex: bool = False) -> None
                 decl.value_start + match.start(),
                 8,
                 f"{match.group(1)}() timeline (scroll-driven animation) is not allowed",
-            )
-        for prelude, offset in decl.scopes:
-            if KEYFRAMES_RE.match(prelude):
-                features = keyframes.setdefault(offset, (prelude, set()))[1]
-                if prop == "opacity":
-                    features.add("opacity")
-                if prop == "translate" or (
-                    prop in ("transform", "-webkit-transform") and TRANSLATE_RE.search(clean)
-                ):
-                    features.add("translate")
-
-    for offset, (prelude, features) in keyframes.items():
-        if {"opacity", "translate"} <= features:
-            src.add(
-                offset,
-                8,
-                f"'{prelude}' animates opacity together with translate (a fade-and-slide "
-                "entrance); use an instant state change",
             )
 
 

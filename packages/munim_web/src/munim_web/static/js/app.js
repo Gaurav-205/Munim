@@ -18,6 +18,8 @@ function once(el, name) {
   return true;
 }
 
+document.documentElement.classList.add("js");
+
 function setup(root = document) {
   // Zoom the paper: buttons and keyboard (+, -, 0) on the viewer.
   const canvas = $("[data-canvas]", root);
@@ -77,12 +79,39 @@ function setup(root = document) {
     });
   });
 
+  // Phone menu: the navigation stays open when scripts do not run (see the .js rules in app.css).
+  const menu = $("[data-menu]", root);
+  if (menu && once(menu, "Menu")) {
+    const sidebar = menu.closest("[data-sidebar]");
+    const setOpen = (open) => {
+      sidebar.classList.toggle("is-open", open);
+      menu.setAttribute("aria-expanded", String(open));
+    };
+    menu.addEventListener("click", () => setOpen(!sidebar.classList.contains("is-open")));
+    sidebar.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") { setOpen(false); menu.focus(); }
+    });
+  }
+
+  // Dropzone: the file input covers it, so dropping works natively; this names the file.
+  $$("[data-dropzone]", root).filter((el) => once(el, "Drop")).forEach((zone) => {
+    const input = $("input[type=file]", zone);
+    const name = $("[data-file-name]", zone);
+    input.addEventListener("change", () => {
+      const file = input.files[0];
+      if (file) name.textContent = `${file.name} (${Math.max(1, Math.round(file.size / 1024))} ${name.dataset.kb})`;
+    });
+    input.addEventListener("dragenter", () => zone.classList.add("is-over"));
+    ["dragleave", "drop"].forEach((kind) => input.addEventListener(kind, () => zone.classList.remove("is-over")));
+  });
+
   // Copy the notice text; print the evidence file.
   $$("[data-copy]", root).filter((el) => once(el, "Copy")).forEach((button) => {
     button.addEventListener("click", async () => {
       const source = document.getElementById(button.dataset.copy);
       if (!source) return;
-      await navigator.clipboard.writeText(source.textContent);
+      // Inputs and edited textareas hold their text in value, not in textContent.
+      await navigator.clipboard.writeText(source.value ?? source.textContent);
       toast($(".toast")?.dataset.copied || "");
     });
   });

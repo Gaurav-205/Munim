@@ -1,9 +1,10 @@
+{% from "components/icons.html" import icon %}
 <!doctype html>
 <html lang="{{ lang }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="htmx-config" content='{"includeIndicatorStyles": false, "allowEval": false, "allowScriptTags": false, "historyCacheSize": 0}'>
+  <meta name="htmx-config" content='{"includeIndicatorStyles": false, "allowEval": false, "allowScriptTags": false, "historyCacheSize": 0, "globalViewTransitions": true, "responseHandling": [{"code": "204", "swap": false}, {"code": "[2345]..", "swap": true}]}'>
   <meta name="csrf-token" content="{{ csrf }}">
   <title>{% block title %}{{ t("app.name") }}{% endblock %}</title>
   <link rel="stylesheet" href="/static/css/fonts.css">
@@ -15,24 +16,34 @@
 </head>
 <body class="{% block body_class %}{% endblock %}" hx-boost="true" hx-headers='{"X-CSRF-Token": "{{ csrf }}"}'>
   <a class="skip" href="#main">{{ t("nav.skip") }}</a>
-  <header class="topbar">
-    <a class="brand" href="/" lang="{{ lang }}">{{ t("app.name") }}</a>
-    <nav class="nav" aria-label="{{ t('nav.main') }}">
-      <a href="/" {% if path == "/" %}aria-current="page"{% endif %}>{{ t("nav.cases") }}</a>
-      <a href="/rules" {% if path == "/rules" %}aria-current="page"{% endif %}>{{ t("nav.rules") }}</a>
-      <a href="/evaluation" {% if path == "/evaluation" %}aria-current="page"{% endif %}>{{ t("nav.evaluation") }}</a>
-      <a href="/settings" {% if path == "/settings" %}aria-current="page"{% endif %}>{{ t("nav.settings") }}</a>
-      <a href="/about" {% if path == "/about" %}aria-current="page"{% endif %}>{{ t("nav.about") }}</a>
-    </nav>
-    <span class="badge badge-{{ provider_name }}" data-provider="{{ provider_name }}">
-      {%- if provider_name == "replay" %}{{ t("badge.replay") }}{% elif provider_name == "gemini" %}{{ t("badge.hosted") }}{% else %}{{ t("badge.local") }}{% endif -%}
-    </span>
-    {% set other = "hi" if lang == "en" else "en" %}
-    <a class="lang-switch" href="/lang/{{ other }}?back_to={{ path | urlencode }}" lang="{{ other }}" hreflang="{{ other }}">{{ t("lang.switch") }}</a>
-  </header>
-  <main id="main" class="{% block main_class %}page{% endblock %}">
-    {% block content %}{% endblock %}
-  </main>
+  {% set other = "hi" if lang == "en" else "en" %}
+  {% block shell %}
+  <div class="shell">
+    <aside class="sidebar" data-sidebar>
+      <div class="sidebar-top">
+        <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">{{ icon("stamp", 18) }}</span><span>{{ t("app.name") }}</span></a>
+        <button class="menu-toggle" type="button" data-menu aria-expanded="false" aria-controls="sidebar-body" aria-label="{{ t('nav.menu') }}">{{ icon("menu", 22) }}</button>
+      </div>
+      <div class="sidebar-body" id="sidebar-body">
+        <nav class="nav" aria-label="{{ t('nav.main') }}">
+          {% for href, key, name in (("/cases", "nav.cases", "cases"), ("/rules", "nav.rules", "rules"), ("/evaluation", "nav.evaluation", "gauge"), ("/settings", "nav.settings", "settings"), ("/about", "nav.about", "info")) %}
+          <a href="{{ href }}" {% if path == href or (href == "/cases" and path.startswith("/cases")) %}aria-current="page"{% endif %}>{{ icon(name, 18) }}<span>{{ t(key) }}</span></a>
+          {% endfor %}
+        </nav>
+        <div class="sidebar-foot">
+          <span class="reader-badge" data-provider="{{ provider_name }}">
+            {{- icon("local", 14) if provider_name != "replay" else icon("sheet", 14) -}}
+            <span>{%- if provider_name == "replay" %}{{ t("badge.replay") }}{% elif provider_name == "gemini" %}{{ t("badge.hosted") }}{% else %}{{ t("badge.local") }}{% endif -%}</span>
+          </span>
+          <a class="lang-switch" href="/lang/{{ other }}?back_to={{ path | urlencode }}" lang="{{ other }}" hreflang="{{ other }}">{{ icon("languages", 16) }}<span>{{ t("lang.switch") }}</span></a>
+        </div>
+      </div>
+    </aside>
+    <main id="main" class="{% block main_class %}page{% endblock %}">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  {% endblock %}
   <div class="toast" role="status" aria-live="polite" data-copied="{{ t('toast.copied') }}"></div>
 </body>
 </html>

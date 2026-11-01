@@ -148,7 +148,7 @@ def test_hex_in_a_javascript_string_fails_but_not_in_a_comment(lint: Lint) -> No
 @pytest.mark.parametrize(
     ("declaration", "message"),
     [
-        ("box-shadow: 0 1px 2px var(--color-ink);", "box-shadow is not allowed"),
+        ("box-shadow: 0 1px 2px var(--color-ink);", "box-shadow must be a var(--shadow-*) token"),
         ("text-shadow: 0 0 1px var(--color-ink);", "text-shadow is not allowed"),
         ("backdrop-filter: blur(4px);", "backdrop-filter is not allowed"),
         ("filter: drop-shadow(0 1px 1px var(--color-ink));", "drop-shadow() is not allowed"),
@@ -174,6 +174,16 @@ def test_shadows_blurs_and_gradients_fail(lint: Lint, declaration: str, message:
     assert message in result.messages[0]
 
 
+def test_gradient_token_is_defined_in_tokens_css_and_used_through_var(lint: Lint) -> None:
+    token = css_rule("--gradient-night: linear-gradient(#000000, #111111);", selector=":root")
+    assert_clean(lint("static/css/tokens.css", token))
+    assert_clean(lint("static/css/app.css", css_rule("background: var(--gradient-night);")))
+
+
+def test_box_shadow_token_passes(lint: Lint) -> None:
+    assert_clean(lint("static/css/app.css", css_rule("box-shadow: var(--shadow-card);")))
+
+
 def test_box_shadow_marked_as_focus_ring_on_the_same_line_passes(lint: Lint) -> None:
     css = css_rule(
         "box-shadow: 0 0 0 2px var(--color-ballpoint); /* focus-ring */",
@@ -194,23 +204,24 @@ def test_focus_ring_marker_on_another_line_does_not_excuse_a_shadow(lint: Lint) 
 
 # ------------------------------------------------------------------ rule 3: radii
 @pytest.mark.parametrize(
-    "value", ["6px", "0", "2px 6px 0 0", "var(--radius-panel)", "0.375rem", "6px !important"]
+    "value",
+    ["0", "0px", "0 0 0 0", "var(--radius-pill)", "0 !important"],
 )
-def test_radius_up_to_six_pixels_passes(lint: Lint, value: str) -> None:
+def test_square_or_token_radius_passes(lint: Lint, value: str) -> None:
     assert_clean(lint("static/css/app.css", css_rule(f"border-radius: {value};")))
 
 
 @pytest.mark.parametrize(
     ("declaration", "message"),
     [
-        ("border-radius: 8px;", "border-radius 8px is above 6px"),
-        ("border-radius: 0.5rem;", "border-radius 0.5rem is above 6px"),
+        ("border-radius: 1px;", "border-radius 1px is above 0"),
+        ("border-radius: 1.5rem;", "border-radius 1.5rem is above 0"),
         ("border-radius: 50%;", "border-radius 50% is a percentage; no circles or pills"),
         ("border-radius: 9999px;", "border-radius 9999px makes a pill"),
-        ("border-top-left-radius: 2px 12px;", "border-radius 12px is above 6px"),
+        ("border-top-left-radius: 0 24px;", "border-radius 24px is above 0"),
     ],
 )
-def test_radius_above_six_pixels_or_round_fails(lint: Lint, declaration: str, message: str) -> None:
+def test_radius_above_zero_or_round_fails(lint: Lint, declaration: str, message: str) -> None:
     result = lint("static/css/app.css", css_rule(declaration))
 
     assert result.code == 1
@@ -224,7 +235,10 @@ def test_uppercase_outside_the_stamp_fails(lint: Lint) -> None:
 
     assert result.code == 1
     assert result.findings == [("static/css/app.css", 2, 4)]
-    assert "text-transform: uppercase is allowed only inside .stamp" in result.messages[0]
+    assert (
+        "text-transform: uppercase is allowed only on the stamp and label styles"
+        in result.messages[0]
+    )
 
 
 def test_uppercase_inside_the_stamp_selector_passes(lint: Lint) -> None:
@@ -233,6 +247,15 @@ def test_uppercase_inside_the_stamp_selector_passes(lint: Lint) -> None:
     )
 
     assert_clean(lint("static/css/app.css", css))
+
+
+@pytest.mark.parametrize(
+    "selector", [".btn", ".badge", "thead th", "label:not(.choice)", ".d-facts dt"]
+)
+def test_uppercase_on_the_label_styles_passes(lint: Lint, selector: str) -> None:
+    assert_clean(
+        lint("static/css/app.css", css_rule("text-transform: uppercase;", selector=selector))
+    )
 
 
 @pytest.mark.parametrize("selector", [".stamped-row", ".stamp-like", ".stamp_word"])
@@ -271,20 +294,22 @@ def test_uppercase_nested_inside_a_stamp_rule_passes(lint: Lint) -> None:
     assert_clean(lint("static/css/app.css", css))
 
 
-@pytest.mark.parametrize("value", ["0.02em", "-0.01em", "0", "normal", "0.3px"])
-def test_letter_spacing_up_to_two_hundredths_em_passes(lint: Lint, value: str) -> None:
+@pytest.mark.parametrize("value", ["0.12em", "0.06em", "-0.03em", "0", "normal", "1px"])
+def test_letter_spacing_up_to_twelve_hundredths_em_passes(lint: Lint, value: str) -> None:
     assert_clean(lint("static/css/app.css", css_rule(f"letter-spacing: {value};")))
 
 
 @pytest.mark.parametrize(
     ("value", "message"),
     [
-        ("0.05em", "letter-spacing 0.05em is above 0.02em"),
-        ("1px", "letter-spacing 1px is above 0.02em"),
+        ("0.15em", "letter-spacing 0.15em is above 0.12em"),
+        ("3px", "letter-spacing 3px is above 0.12em"),
         ("0.1ch", "letter-spacing 0.1ch uses 'ch'"),
     ],
 )
-def test_letter_spacing_above_two_hundredths_em_fails(lint: Lint, value: str, message: str) -> None:
+def test_letter_spacing_above_twelve_hundredths_em_fails(
+    lint: Lint, value: str, message: str
+) -> None:
     result = lint("static/css/app.css", css_rule(f"letter-spacing: {value};"))
 
     assert result.code == 1
@@ -347,9 +372,9 @@ def test_arrow_written_as_an_html_entity_fails(lint: Lint) -> None:
 @pytest.mark.parametrize(
     ("declaration", "family"),
     [
-        ("font-family: monospace;", "monospace"),
+        ("font-family: fantasy;", "fantasy"),
         ("font-family: var(--font-ui), Arial;", "Arial"),
-        ('font: 14px/1.4 "Courier New", var(--font-ui);', '"Courier New"'),
+        ('font: 14px/1.4 "Comic Sans MS", var(--font-ui);', '"Comic Sans MS"'),
     ],
 )
 def test_undeclared_font_families_fail(lint: Lint, declaration: str, family: str) -> None:
@@ -454,12 +479,8 @@ STAMP_LANDS = """\
 """
 
 
-def test_keyframes_animating_opacity_with_translate_fail(lint: Lint) -> None:
-    result = lint("static/css/app.css", STAMP_LANDS + FADE_AND_SLIDE)
-
-    assert result.code == 1
-    assert result.findings == [("static/css/app.css", 5, 8)]
-    assert "'@keyframes rise' animates opacity together with translate" in result.messages[0]
+def test_entrance_keyframes_pass_since_design_v2_allows_subtle_motion(lint: Lint) -> None:
+    assert_clean(lint("static/css/app.css", STAMP_LANDS + FADE_AND_SLIDE))
 
 
 def test_keyframes_without_a_fade_and_slide_pass(lint: Lint) -> None:

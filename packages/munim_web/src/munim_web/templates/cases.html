@@ -1,29 +1,73 @@
 {% extends "base.html" %}
-{% from "components/macros.html" import button, csrf_field, field, sheet_tab %}
+{% from "components/macros.html" import sheet_tab %}
+{% from "components/icons.html" import icon %}
 {% block title %}{{ t("cases.title") }} | {{ t("app.name") }}{% endblock %}
 {% block content %}
-<div class="reading">
-  <h1>{{ t("cases.title") }}</h1>
-  <p class="lede">{{ t("app.tagline") }}</p>
-</div>
+<header class="page-head">
+  <div>
+    <h1>{{ t("cases.title") }}</h1>
+    <p class="lede">{{ t("app.tagline") }}</p>
+  </div>
+  {% if rows %}<div class="page-actions">
+    <a class="btn btn-primary" href="/cases/new">{{ icon("plus", 18) }}{{ t("cases.new") }}</a>
+  </div>{% endif %}
+</header>
 {% if request.query_params.get("deleted") %}<p class="message message-passed" role="status">{{ t("delete.done") }}</p>{% endif %}
 {% if rows %}
-<div class="table-wrap">
+<section class="stats" aria-label="{{ t('stats.label') }}">
+  <div class="stat stat-lead rise" data-stat="owed">
+    <span class="stat-icon" aria-hidden="true">{{ icon("rupee", 18) }}</span>
+    <span class="stat-label">{{ t("stats.owed") }}</span>
+    <span class="stat-value">{{ stats.owed | inr }}</span>
+    <span class="stat-help">{{ t("stats.owed.help", n=stats.cases) }}</span>
+    {% if stats.unconfirmed %}<span class="stat-help">{{ t("stats.owed.unconfirmed") }}</span>{% endif %}
+  </div>
+  <div class="stat rise" data-stat="interest">
+    <span class="stat-icon" aria-hidden="true">{{ icon("clock", 18) }}</span>
+    <span class="stat-label">{{ t("stats.interest") }}</span>
+    <span class="stat-value">{{ stats.interest | inr }}</span>
+    <span class="stat-help">{{ t("stats.interest.help") }}</span>
+  </div>
+  <div class="stat rise" data-stat="late">
+    <span class="stat-icon" aria-hidden="true">{{ icon("warn", 18) }}</span>
+    <span class="stat-label">{{ t("stats.late") }}</span>
+    <span class="stat-value">{{ stats.late }}</span>
+    <span class="stat-help">{{ t("stats.late.help") }}</span>
+  </div>
+  <div class="stat rise" data-stat="open">
+    <span class="stat-icon" aria-hidden="true">{{ icon("checks", 18) }}</span>
+    <span class="stat-label">{{ t("stats.open") }}</span>
+    <span class="stat-value">{{ stats.open }}</span>
+    <span class="stat-help">{{ t("stats.open.help") }}</span>
+  </div>
+</section>
+<div class="card card-flush table-wrap" tabindex="0">
 <table class="cases">
   <thead><tr>
     <th scope="col">{{ t("cases.col.case") }}</th>
-    <th scope="col">{{ t("cases.col.parties") }}</th>
     <th scope="col">{{ t("cases.col.papers") }}</th>
+    <th scope="col">{{ t("cases.col.status") }}</th>
     <th scope="col" class="num">{{ t("cases.col.owed") }}</th>
-    <th scope="col">{{ t("cases.col.updated") }}</th>
+    <th scope="col" class="num">{{ t("cases.col.updated") }}</th>
   </tr></thead>
   <tbody>
   {% for r in rows %}
     <tr>
-      <td><a href="/cases/{{ r.case.id }}">{{ r.case.title }}</a></td>
-      <td>{{ t("cases.parties", supplier=r.case.supplier_name, buyer=r.case.buyer_name) }}</td>
-      <td><span class="tabs">{% for k in r.kinds %}{{ sheet_tab(k) }}<span class="visually-hidden">{{ t("paper.kind." ~ k) }}</span>{% endfor %}</span></td>
-      <td class="num">{% if r.owed is not none %}{{ r.owed | inr }}{% else %}<span class="muted">{{ t("cases.owed.none") }}</span>{% endif %}</td>
+      <td>
+        <a class="case-link" href="/cases/{{ r.case.id }}">{{ r.case.title }}</a>
+        <span class="case-parties">{{ t("cases.parties", supplier=r.case.supplier_name, buyer=r.case.buyer_name) }}</span>
+      </td>
+      <td><span class="tabs">{% for k in r.kinds %}{{ sheet_tab(k) }}<span class="visually-hidden">{{ t("paper.kind." ~ k) }}</span>{% else %}<span class="muted">{{ t("cases.papers.none") }}</span>{% endfor %}</span></td>
+      <td>
+        {% if r.open %}<span class="badge badge-review">{{ icon("bracket-hand", 14) }}{{ t("cases.status.open", n=r.open) }}</span>
+        {% elif r.confirmed %}<span class="badge badge-passed">{{ icon("tick", 14) }}{{ t("cases.status.confirmed") }}</span>
+        {% else %}<span class="badge">{{ t("cases.status.progress") }}</span>{% endif %}
+      </td>
+      <td class="num">
+        {% if r.owed is not none %}{{ r.owed | inr }}
+        {% if r.days_late %}<span class="case-parties">{{ t("cases.days_late", n=r.days_late) }}</span>{% endif %}
+        {% else %}<span class="muted">{{ t("cases.owed.none") }}</span>{% endif %}
+      </td>
       <td class="num">{{ t.date(r.case.updated_at[:10]) }}</td>
     </tr>
   {% endfor %}
@@ -31,19 +75,11 @@
 </table>
 </div>
 {% else %}
-<div class="sheet empty reading">
+<div class="card empty-state">
+  <span class="empty-icon" aria-hidden="true">{{ icon("sheet", 28) }}</span>
+  <h2>{{ t("cases.empty.title") }}</h2>
   <p>{{ t("cases.empty") }}</p>
+  <a class="btn btn-primary" href="/cases/new">{{ icon("plus", 18) }}{{ t("cases.new") }}</a>
 </div>
 {% endif %}
-<section class="sheet reading new-case" aria-labelledby="new-case-title">
-  <h2 id="new-case-title">{{ t("cases.new") }}</h2>
-  {% if form_error %}<p class="message message-failed" role="alert">{{ t(form_error) }}</p>{% endif %}
-  <form method="post" action="/cases">
-    {{ csrf_field(csrf) }}
-    {{ field("title", t("case.form.title"), "title", form.title if form else "", help=t("case.form.title.help"), required=True) }}
-    {{ field("supplier_name", t("case.form.supplier"), "supplier_name", form.supplier_name if form else "", required=True) }}
-    {{ field("buyer_name", t("case.form.buyer"), "buyer_name", form.buyer_name if form else "", required=True) }}
-    {{ button(t("cases.new"), "primary") }}
-  </form>
-</section>
 {% endblock %}

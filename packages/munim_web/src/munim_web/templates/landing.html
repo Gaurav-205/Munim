@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import verdict, ident, stamp %}
+{% from "components/icons.html" import icon %}
+{% block title %}{{ t("land.title") }} | {{ t("app.name") }}{% endblock %}
+{% block body_class %}landing-page{% endblock %}
+{% block shell %}
+<div class="hero-wrap">
+  <header class="land-bar">
+    <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">{{ icon("stamp", 18) }}</span><span>{{ t("app.name") }}</span></a>
+    <nav class="land-nav" aria-label="{{ t('nav.main') }}">
+      <a href="#how">{{ t("land.nav.how") }}</a>
+      <a href="#checks">{{ t("land.nav.checks") }}</a>
+      <a href="/rules">{{ t("nav.rules") }}</a>
+      <a href="/evaluation">{{ t("nav.evaluation") }}</a>
+    </nav>
+    <a class="lang-switch" href="/lang/{{ other }}?back_to=/" lang="{{ other }}" hreflang="{{ other }}">{{ icon("languages", 16) }}<span>{{ t("lang.switch") }}</span></a>
+  </header>
+  <div class="hero">
+    <div class="hero-copy rise">
+      <h1>{{ t("land.hero.title") }}</h1>
+      <p class="hero-lede">{{ t("land.hero.lede") }}</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-lg" href="/cases">{{ t("land.cta.open") }}{{ icon("arrow-right", 18) }}</a>
+        <a class="btn btn-on-night btn-lg" href="#how">{{ t("land.cta.how") }}</a>
+      </div>
+      <p class="hero-note">{% if demo %}{{ t("land.hero.note.demo") }}{% else %}{{ t("land.hero.note") }}{% endif %}</p>
+    </div>
+    <div class="hero-art rise" aria-labelledby="sample-label" role="group">
+      <div class="art-paper">
+        <div class="art-head">
+          <span class="sheet-dot sheet-dot-invoice" aria-hidden="true"></span>
+          <span class="art-title">{{ t("paper.kind.invoice") }}</span>
+          <span class="muted small" id="sample-label">{{ t("land.sample") }}</span>
+        </div>
+        <dl class="art-rows">
+          <div class="art-row">
+            <dt>{{ t("field.invoice_number") }}</dt>
+            <dd><span class="num">SF/2025-26/0412</span>{{ verdict(t, "passed") }}</dd>
+          </div>
+          <div class="art-row art-row-fixed redpen-animate">
+            <dt>{{ t("field.po_number") }}</dt>
+            <dd>
+              <span class="art-correction">
+                <span class="struck"><span class="num">PO-2O26-0117</span><svg class="strike-line" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><path d="M0 6 C 15 3, 30 8, 50 5 S 85 3, 100 6"/></svg></span>
+                <span class="hand">PO-2026-0117</span>
+              </span>
+              {{ verdict(t, "passed") }}
+            </dd>
+            <dd class="art-note muted small">{{ t("land.sample.note") }}</dd>
+          </div>
+          <div class="art-row">
+            <dt>{{ t("field.invoice_total") }}</dt>
+            <dd><span class="num">{{ 50000000 | inr }}</span>{{ verdict(t, "passed") }}</dd>
+          </div>
+        </dl>
+      </div>
+      <div class="art-owed">
+        <span class="art-owed-label">{{ t("clock.owed") }}</span>
+        <span class="art-owed-amount">{{ 54097671 | inr }}</span>
+        <span class="art-owed-sub">{{ t("land.sample.late", days=177, interest=4097671 | inr) }}</span>
+      </div>
+      <div class="art-stamp">{{ stamp(t, t.date("2026-10-13")) }}</div>
+    </div>
+  </div>
+</div>
+
+<main id="main" class="land-main">
+  <section class="land-section" id="how" aria-labelledby="how-title">
+    <h2 id="how-title">{{ t("land.how.title") }}</h2>
+    <p class="land-lede">{{ t("land.how.lede") }}</p>
+    <ol class="how-list">
+      {% for key, name in (("photo", "camera"), ("read", "scan"), ("check", "checks"), ("file", "file-check")) %}
+      <li class="how-step">
+        <span class="how-icon" aria-hidden="true">{{ icon(name, 20) }}</span>
+        <h3>{{ t("land.how." ~ key ~ ".title") }}</h3>
+        <p>{% if demo and key == "photo" %}{{ t("land.how.photo.body.demo") }}{% else %}{{ t("land.how." ~ key ~ ".body") }}{% endif %}</p>
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  <section class="land-section" id="checks" aria-labelledby="checks-title">
+    <h2 id="checks-title">{{ t("land.checks.title") }}</h2>
+    <div class="feature-grid">
+      {% for key, name in (("redpen", "edit"), ("clock", "clock"), ("evidence", "shield"), ("compare", "compare"), ("samadhaan", "landmark"), ("languages", "languages")) %}
+      <article class="feature">
+        <span class="feature-icon" aria-hidden="true">{{ icon(name, 20) }}</span>
+        <h3>{{ t("land.f." ~ key ~ ".title") }}</h3>
+        <p>{{ t("land.f." ~ key ~ ".body") }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="land-band" aria-labelledby="trust-title">
+    <div>
+      <h2 id="trust-title">{{ t("land.trust.title") }}</h2>
+      <p>{{ t("about.model") }}</p>
+      <p>{% if demo %}{{ t("land.trust.demo") }}{% else %}{{ t("about.privacy") }}{% endif %}</p>
+    </div>
+    <div class="land-band-actions">
+      <a class="btn btn-primary btn-lg" href="/cases">{{ t("land.cta.open") }}{{ icon("arrow-right", 18) }}</a>
+      <a class="btn btn-on-night btn-lg" href="https://github.com/Gaurav-205/Munim" rel="noopener">{{ icon("code", 18) }}{{ t("land.cta.source") }}</a>
+    </div>
+  </section>
+</main>
+
+<footer class="land-foot">
+  <p>{{ t("legal.notice") }}</p>
+  <nav aria-label="{{ t('land.foot.nav') }}">
+    <a href="/cases">{{ t("nav.cases") }}</a>
+    <a href="/rules">{{ t("nav.rules") }}</a>
+    <a href="/evaluation">{{ t("nav.evaluation") }}</a>
+    <a href="/settings">{{ t("nav.settings") }}</a>
+    <a href="/about">{{ t("nav.about") }}</a>
+  </nav>
+</footer>
+{% endblock %}

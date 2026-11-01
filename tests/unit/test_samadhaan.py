@@ -69,3 +69,30 @@ def test_statement_of_claim_truncation_safety() -> None:
 
     packet = build_samadhaan_packet(inp)
     assert len(packet.statement_of_claim) <= 1000
+
+
+def test_statement_has_no_empty_brackets_without_an_udyam_number() -> None:
+    inp = SamadhaanInput(
+        supplier_name="Sharma Engineering Works",
+        supplier_udyam="",
+        supplier_gstin="27AAACS1234A1Z5",
+        supplier_state="Maharashtra",
+        buyer_name="Mega Infra Private Limited",
+        buyer_gstin="27AABCM5678B1Z2",
+        buyer_type="Private Limited Company",
+        po_number="PO-2024-001",
+        po_date=date(2024, 1, 10),
+        invoice_number="INV/2024/042",
+        invoice_date=date(2024, 1, 15),
+        invoice_amount_paise=150_000_00,
+        delivery_date=date(2024, 1, 18),
+        due_date=date(2024, 2, 2),
+        as_on_date=date(2024, 4, 15),
+        principal_claimed_paise=150_000_00,
+        interest_claimed_paise=6_432_50,
+    )
+
+    statement = build_samadhaan_packet(inp).statement_of_claim
+
+    assert "()" not in statement
+    assert "Supplier supplied under Invoice INV/2024/042" in statement
