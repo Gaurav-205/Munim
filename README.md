@@ -50,12 +50,12 @@ Live-model evaluation is recorded in `eval/reports/latest.json` using `gemma-4-2
 - Wrong and passed: 1 of 58 (1.72%; only receiver signature flag misread)
 - Invalid JSON failures: 0
 
-The evaluation harness is also tested on recorded replay responses for 30 synthetic papers (`eval/reports/replay.json`): there, 26 of 660 fields were deliberately misread and the checks caught 13. That measures the checks and the harness, not the model.
+The evaluation harness is also tested on recorded replay responses for 30 synthetic papers (`eval/reports/replay.json`): there, 26 of 660 fields were deliberately misread and the checks caught 15. That measures the checks and the harness, not the model.
 
 | Measure on the synthetic recordings | Result |
 | --- | --- |
-| Wrong value that no check caught ("wrong and passed") | 13 of 660 fields |
-| Wrong values the checks flagged | 13 of 26 |
+| Wrong value that no check caught ("wrong and passed") | 11 of 660 fields |
+| Wrong values the checks flagged | 15 of 26 |
 | Model misreads corrected by the re-read | 8 of 8 attempted |
 | Injected GSTIN faults | 1 corrected by the look-alike map, 1 unchanged (the fault is printed on the paper) |
 

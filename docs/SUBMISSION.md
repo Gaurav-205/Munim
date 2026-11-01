@@ -54,7 +54,7 @@ Python, FastAPI, Jinja2, htmx, SQLite, Pydantic, python-stdnum, Pillow, rapidfuz
 | Likely question | Prepared answer (verify against the final build) |
 | --- | --- |
 | Why not just use a big hosted model? | Papers are private business data; local open-weight keeps them on the machine; the checks make a small model usable; cost per page is zero. |
-| What if the model misreads? | The headline metric is "wrong and passed" (no live figure yet; on synthetic recordings the checks caught 13 of 26 deliberately wrong values). Checks catch many; the user sees the box next to every value and must confirm. |
+| What if the model misreads? | The headline metric is "wrong and passed" (1 of 58 fields on the live run over the demo papers; on synthetic recordings the checks caught 15 of 26 deliberately wrong values). Checks catch many; the user sees the box next to every value and must confirm. |
 | Is this legal advice? | No. It calculates from stated rules, cites them, flags unsettled points (registration timing), and marks drafts. |
 | Is the interest right? | Matches golden vectors; assumptions (day count, base) are listed on the Rules page; an accountant should confirm. |
 | What did you build today? | Show the commit history and `PROGRESS.md`. Libraries listed in THIRD_PARTY. |
