@@ -85,7 +85,10 @@ def main() -> int:
             return 2
         with sync_playwright() as p:
             browser = p.chromium.launch()
-            page = browser.new_page(viewport={"width": 1440, "height": 1000})
+            # Reduced motion, so no shot catches a card halfway through its entrance.
+            page = browser.new_page(
+                viewport={"width": 1440, "height": 1000}, reduced_motion="reduce"
+            )
             case_id = demo_case(page, url)
             pages = {
                 "landing": "/",

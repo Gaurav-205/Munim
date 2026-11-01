@@ -59,17 +59,17 @@ def test_real_design_md_has_the_known_ratios_and_passes() -> None:
 
     assert result.returncode == 0, result.stdout + result.stderr
     out = result.stdout
-    assert "ink on bond: 16.43 (threshold 4.5, claimed 16.4) ok" in out
-    assert "hairline-strong on sheet: 3.24 (threshold 3.0, claimed 3.2) ok" in out
-    assert "tick on tick-wash: 5.24 (threshold 4.5, claimed 5.2) ok" in out
+    assert "ink on bond: 18.97 (threshold 4.5, claimed 19.0) ok" in out
+    assert "hairline-strong on sheet: 4.54 (threshold 3.0, claimed 4.5) ok" in out
+    assert "tick on tick-wash: 4.79 (threshold 4.5, claimed 4.8) ok" in out
     assert "FAIL" not in out
     assert out.rstrip().endswith("problems")
     assert ", 0 problems" in out.splitlines()[-1]
     # Every note form of the real table is read: 27 pairs, including "White text on it
-    # 9.8:1" (sheet on ballpoint-pressed) and "Text on it is `ink`".
+    # 4.6:1" (sheet on ballpoint-pressed) and "Text on it is `ink`".
     assert out.splitlines()[-1] == "check_contrast: 27 pairs checked, 0 problems"
-    assert "sheet on ballpoint-pressed: 9.75 (threshold 4.5, claimed 9.8) ok" in out
-    assert "ink on carbon-pink: 11.86 (threshold 4.5, claimed none) ok" in out
+    assert "sheet on ballpoint-pressed: 4.63 (threshold 4.5, claimed 4.6) ok" in out
+    assert "ink on carbon-pink: 13.24 (threshold 4.5, claimed none) ok" in out
 
 
 # ------------------------------------------------------------------ synthetic files

@@ -205,25 +205,23 @@ def test_focus_ring_marker_on_another_line_does_not_excuse_a_shadow(lint: Lint) 
 # ------------------------------------------------------------------ rule 3: radii
 @pytest.mark.parametrize(
     "value",
-    ["16px", "0", "2px 16px 0 0", "var(--radius-pill)", "1rem", "16px !important"],
+    ["0", "0px", "0 0 0 0", "var(--radius-pill)", "0 !important"],
 )
-def test_radius_up_to_sixteen_pixels_passes(lint: Lint, value: str) -> None:
+def test_square_or_token_radius_passes(lint: Lint, value: str) -> None:
     assert_clean(lint("static/css/app.css", css_rule(f"border-radius: {value};")))
 
 
 @pytest.mark.parametrize(
     ("declaration", "message"),
     [
-        ("border-radius: 20px;", "border-radius 20px is above 16px"),
-        ("border-radius: 1.5rem;", "border-radius 1.5rem is above 16px"),
+        ("border-radius: 1px;", "border-radius 1px is above 0"),
+        ("border-radius: 1.5rem;", "border-radius 1.5rem is above 0"),
         ("border-radius: 50%;", "border-radius 50% is a percentage; no circles or pills"),
         ("border-radius: 9999px;", "border-radius 9999px makes a pill"),
-        ("border-top-left-radius: 2px 24px;", "border-radius 24px is above 16px"),
+        ("border-top-left-radius: 0 24px;", "border-radius 24px is above 0"),
     ],
 )
-def test_radius_above_sixteen_pixels_or_round_fails(
-    lint: Lint, declaration: str, message: str
-) -> None:
+def test_radius_above_zero_or_round_fails(lint: Lint, declaration: str, message: str) -> None:
     result = lint("static/css/app.css", css_rule(declaration))
 
     assert result.code == 1
@@ -237,7 +235,10 @@ def test_uppercase_outside_the_stamp_fails(lint: Lint) -> None:
 
     assert result.code == 1
     assert result.findings == [("static/css/app.css", 2, 4)]
-    assert "text-transform: uppercase is allowed only inside .stamp" in result.messages[0]
+    assert (
+        "text-transform: uppercase is allowed only on the stamp and label styles"
+        in result.messages[0]
+    )
 
 
 def test_uppercase_inside_the_stamp_selector_passes(lint: Lint) -> None:
@@ -246,6 +247,15 @@ def test_uppercase_inside_the_stamp_selector_passes(lint: Lint) -> None:
     )
 
     assert_clean(lint("static/css/app.css", css))
+
+
+@pytest.mark.parametrize(
+    "selector", [".btn", ".badge", "thead th", "label:not(.choice)", ".d-facts dt"]
+)
+def test_uppercase_on_the_label_styles_passes(lint: Lint, selector: str) -> None:
+    assert_clean(
+        lint("static/css/app.css", css_rule("text-transform: uppercase;", selector=selector))
+    )
 
 
 @pytest.mark.parametrize("selector", [".stamped-row", ".stamp-like", ".stamp_word"])
@@ -284,20 +294,22 @@ def test_uppercase_nested_inside_a_stamp_rule_passes(lint: Lint) -> None:
     assert_clean(lint("static/css/app.css", css))
 
 
-@pytest.mark.parametrize("value", ["0.02em", "-0.01em", "0", "normal", "0.3px"])
-def test_letter_spacing_up_to_two_hundredths_em_passes(lint: Lint, value: str) -> None:
+@pytest.mark.parametrize("value", ["0.12em", "0.06em", "-0.03em", "0", "normal", "1px"])
+def test_letter_spacing_up_to_twelve_hundredths_em_passes(lint: Lint, value: str) -> None:
     assert_clean(lint("static/css/app.css", css_rule(f"letter-spacing: {value};")))
 
 
 @pytest.mark.parametrize(
     ("value", "message"),
     [
-        ("0.05em", "letter-spacing 0.05em is above 0.02em"),
-        ("1px", "letter-spacing 1px is above 0.02em"),
+        ("0.15em", "letter-spacing 0.15em is above 0.12em"),
+        ("3px", "letter-spacing 3px is above 0.12em"),
         ("0.1ch", "letter-spacing 0.1ch uses 'ch'"),
     ],
 )
-def test_letter_spacing_above_two_hundredths_em_fails(lint: Lint, value: str, message: str) -> None:
+def test_letter_spacing_above_twelve_hundredths_em_fails(
+    lint: Lint, value: str, message: str
+) -> None:
     result = lint("static/css/app.css", css_rule(f"letter-spacing: {value};"))
 
     assert result.code == 1
@@ -360,9 +372,9 @@ def test_arrow_written_as_an_html_entity_fails(lint: Lint) -> None:
 @pytest.mark.parametrize(
     ("declaration", "family"),
     [
-        ("font-family: monospace;", "monospace"),
+        ("font-family: fantasy;", "fantasy"),
         ("font-family: var(--font-ui), Arial;", "Arial"),
-        ('font: 14px/1.4 "Courier New", var(--font-ui);', '"Courier New"'),
+        ('font: 14px/1.4 "Comic Sans MS", var(--font-ui);', '"Comic Sans MS"'),
     ],
 )
 def test_undeclared_font_families_fail(lint: Lint, declaration: str, family: str) -> None:

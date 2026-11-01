@@ -6,7 +6,7 @@ Maintained by hand and checked by `scripts/check_licences.py`. Versions come fro
 | --- | --- | --- | --- | --- |
 | Gemma 4 weights (Google DeepMind) | `gemma4:e4b` (default tag; no digest recorded because no live run yet) | Apache 2.0 (per model card; link at submission) | Reading photos of papers | No |
 | Ollama | not bundled; the user installs it (any version with Gemma 4 support) | MIT | Local model runtime | No |
-| Inter (variable, latin and latin-ext subsets) | @fontsource-variable/inter 5.1.0 | OFL-1.1 | Interface font, Latin text; bundled in `static/fonts/` | No |
+| Archivo Black, Work Sans, Space Mono (latin and latin-ext subsets) | @fontsource 5.1.0 | OFL-1.1 | Headings, interface text, code; bundled in `static/fonts/` | No |
 | Lucide icons (selected SVG paths) | lucide-static 0.460.0 | ISC | Interface icons, inlined in `templates/components/icons.html` | No |
 | python-stdnum | 2.2 | LGPL-2.1-or-later | GSTIN, PAN, Aadhaar validation | No (dynamically imported) |
 | FastAPI / Starlette / Uvicorn | 0.143.0 / 1.7.0 / 0.54.0 | MIT / BSD-3 | Web framework and server | No |

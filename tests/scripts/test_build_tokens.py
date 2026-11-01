@@ -18,6 +18,8 @@ colors:
   ink: "#15171C"
 typography:
   family-ui: "Mukta, 'Noto Sans Devanagari', sans-serif"
+  family-display: "'Archivo Black', Mukta, sans-serif"
+  family-mono: "'Space Mono', monospace"
   family-hand: "Kalam, cursive"
   body: { family: ui, size: 16px, line: 26px, weight: 400 }
   amount: { family: ui, size: 40px, line: 44px, weight: 600, tracking: -0.01em, features: [tnum] }
@@ -46,6 +48,8 @@ EXPECTED_BODY = """\
 
   /* Typography */
   --font-ui: Mukta, 'Noto Sans Devanagari', sans-serif;
+  --font-display: 'Archivo Black', Mukta, sans-serif;
+  --font-mono: 'Space Mono', monospace;
   --font-hand: Kalam, cursive;
   --type-body-size: 16px;
   --type-body-line: 26px;

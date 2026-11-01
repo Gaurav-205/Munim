@@ -35,7 +35,12 @@ HEX_RE = re.compile(r"^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{4}|[0-9A-Fa-f]{6}|[0-9A-Fa
 UNIT_RE = re.compile(r"^-?\d*\.?\d+([a-z%]*)$")
 TYPE_FIELDS = ("size", "line", "weight", "tracking")
 MOTION_FIELDS = ("duration", "easing", "from", "to")
-FAMILY_KEYS = (("family-ui", "--font-ui"), ("family-hand", "--font-hand"))
+FAMILY_KEYS = (
+    ("family-ui", "--font-ui"),
+    ("family-display", "--font-display"),
+    ("family-mono", "--font-mono"),
+    ("family-hand", "--font-hand"),
+)
 FAMILY_NAMES = frozenset(key for key, _ in FAMILY_KEYS)
 
 

@@ -8,10 +8,10 @@ Rules (numbers as in DESIGN.md section 12; every message cites section 7):
    marked ``/* focus-ring */`` on the same line, or ``none``), text-shadow,
    backdrop-filter, drop-shadow()/blur() filters, and every raw *-gradient()
    outside tokens.css (gradients are tokens: var(--gradient-*)).
-3. border-radius above 16px, any percentage, and raw 9999px pills (use var(--radius-pill)).
-4. text-transform: uppercase outside a ``.stamp`` selector (every selector of a list
-   must target ``.stamp``, and ``:not(.stamp)`` does not count); letter-spacing above
-   0.02em.
+3. border-radius above 0, any percentage, and raw 9999px pills. Use a var(--radius-*) token.
+4. text-transform: uppercase outside the stamp and the label styles (buttons, badges,
+   form labels, table headers, fact terms, stat labels; every selector of a list must
+   target one, and ``:not(.stamp)`` does not count); letter-spacing above 0.12em.
 5. Emoji, arrows, the em dash and the middle dot used as a separator, in i18n
    values, template text and CSS strings.
 6. Font families other than the declared ones.
@@ -61,14 +61,20 @@ VENDOR_PARTS = ("static", "js", "vendor")
 TOKENS_FILE = "tokens.css"
 SECTION = "DESIGN.md section 7"
 
-MAX_RADIUS_PX = Fraction(16)
+MAX_RADIUS_PX = Fraction(0)
 PILL_RADIUS_PX = Fraction(9999)
-MAX_TRACKING_EM = Fraction(2, 100)
+MAX_TRACKING_EM = Fraction(12, 100)
 ROOT_PX = Fraction(16)
 
 ALLOWED_FAMILIES = frozenset(
     {
-        "inter variable",
+        "work sans",
+        "archivo black",
+        "space mono",
+        "impact",
+        "arial black",
+        "courier new",
+        "monospace",
         "mukta",
         "kalam",
         "ibm plex sans",
@@ -79,6 +85,8 @@ ALLOWED_FAMILIES = frozenset(
         "inherit",
         "var(--font-ui)",
         "var(--font-hand)",
+        "var(--font-display)",
+        "var(--font-mono)",
     }
 )
 COLOUR_ATTRS = frozenset(
@@ -151,7 +159,10 @@ JS_STYLE_RE = re.compile(
     re.I,
 )
 INTERSECTION_RE = re.compile(r"\bIntersectionObserver\b")
-STAMP_SELECTOR_RE = re.compile(r"\.stamp(?![\w-])")  # .stamp, not .stamped-row
+# .stamp, not .stamped-row; the bare element names are the label styles of DESIGN.md section 3.
+CAPS_SELECTOR_RE = re.compile(
+    r"\.(?:stamp|btn|badge|stat-label)(?![\w-])|(?<![\w.#-])(?:label|legend|th|dt)(?![\w-])"
+)
 
 TEMPLATE_COMMENT_RE = re.compile(r"\{#.*?#\}|<!--.*?-->", re.S)
 JINJA_RE = re.compile(r"\{\{.*?\}\}|\{%.*?%\}", re.S)
@@ -429,7 +440,7 @@ def radius_problems(value: str) -> Iterator[tuple[int, str]]:
         if px >= PILL_RADIUS_PX:
             yield match.start(), f"border-radius {shown} makes a pill; use var(--radius-pill)"
         elif px > MAX_RADIUS_PX:
-            yield match.start(), f"border-radius {shown} is above 16px"
+            yield match.start(), f"border-radius {shown} is above 0; radii are tokens"
 
 
 def tracking_problem(value: str, unitless_is_px: bool = False) -> str | None:
@@ -450,7 +461,7 @@ def tracking_problem(value: str, unitless_is_px: bool = False) -> str | None:
     else:
         return f"letter-spacing {text} uses '{unit or 'no unit'}'; use em, at most 0.02em"
     if em > MAX_TRACKING_EM:
-        return f"letter-spacing {text} is above 0.02em"
+        return f"letter-spacing {text} is above 0.12em"
     return None
 
 
@@ -490,12 +501,12 @@ def without_not(selector: str) -> str:
     return "".join(out)
 
 
-def stamp_only(prelude: str) -> bool:
-    """True when every selector in the list targets .stamp (outside a :not())."""
+def caps_allowed(prelude: str) -> bool:
+    """True when every selector in the list targets a capitals style (outside a :not())."""
     if prelude.lstrip().startswith("@"):
         return False
     return all(
-        STAMP_SELECTOR_RE.search(without_not(selector)) for _, selector in split_top_level(prelude)
+        CAPS_SELECTOR_RE.search(without_not(selector)) for _, selector in split_top_level(prelude)
     )
 
 
@@ -516,8 +527,7 @@ def family_problems(value: str) -> Iterator[tuple[int, str]]:
             lead = len(part) - len(part.lstrip())
             yield (
                 index + lead,
-                f"font family {part.strip()} is not declared; use var(--font-ui) or "
-                "var(--font-hand)",
+                f"font family {part.strip()} is not declared; use a var(--font-*) token",
             )
 
 
@@ -579,9 +589,13 @@ def check_decls(src: Source, decls: list[Decl], allow_hex: bool = False) -> None
         if (
             prop == "text-transform"
             and "uppercase" in lowered
-            and not any(stamp_only(prelude) for prelude, _ in decl.scopes)
+            and not any(caps_allowed(prelude) for prelude, _ in decl.scopes)
         ):
-            src.add(decl.start, 4, "text-transform: uppercase is allowed only inside .stamp")
+            src.add(
+                decl.start,
+                4,
+                "text-transform: uppercase is allowed only on the stamp and label styles",
+            )
         if prop == "letter-spacing":
             problem = tracking_problem(clean)
             if problem:
