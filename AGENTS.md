@@ -26,7 +26,7 @@ make ci          # everything except live-model eval
 - **Money is integer paise.** No floats for money. Use `munim_core.money`.
 - **Pure core.** `munim_core` imports no framework, no network, no filesystem. `import-linter` enforces this.
 - **No hard-coded UI strings.** Use i18n keys in `en.json` and `hi.json`; `check_i18n` must pass.
-- **Design tokens only.** No raw hex outside `tokens.css`; no shadows, gradients, pills, emoji; sentence case. See `DESIGN.md` section 7 and 12.
+- **Design tokens only.** No raw hex outside `tokens.css`; shadows and gradients only through tokens; no emoji; sentence case. See `DESIGN.md` section 7 and 12.
 - **Privacy.** No real documents, GSTINs of real businesses, names or keys in the repository, tests, logs or screenshots. Logs carry ids only. Never log claim values.
 - **Say Passed, never Verified.** A passed check does not prove a value is right.
 - **Do not invent facts.** Legal, rate and model-capability statements need a source in `DOMAIN_RULES.md` or `AI_SPEC.md`; unverified items stay labelled unverified.
@@ -41,7 +41,7 @@ make ci          # everything except live-model eval
 - Prompt change: bump `prompt_version`, re-run `make eval`, update the report.
 
 ## Do not
-- Add a JS framework, a CSS framework, an icon library, analytics, telemetry or CDN links.
+- Add a JS framework, a CSS framework, analytics, telemetry or CDN links. Icons come only from the vendored Lucide set (`templates/components/icons.html`).
 - Add dependencies without a line in `THIRD_PARTY.md` and an allowed licence.
 - Commit images outside `eval/fixtures/` and `docs/screens/`.
 - Claim measured results that are not in `eval/reports/latest.json`.

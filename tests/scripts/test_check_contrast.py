@@ -59,17 +59,17 @@ def test_real_design_md_has_the_known_ratios_and_passes() -> None:
 
     assert result.returncode == 0, result.stdout + result.stderr
     out = result.stdout
-    assert "ink on bond: 16.29 (threshold 4.5, claimed 16.3) ok" in out
-    assert "hairline-strong on sheet: 3.59 (threshold 3.0, claimed 3.59) ok" in out
-    assert "tick on tick-wash: 4.59 (threshold 4.5, claimed 4.6) ok" in out
+    assert "ink on bond: 16.43 (threshold 4.5, claimed 16.4) ok" in out
+    assert "hairline-strong on sheet: 3.24 (threshold 3.0, claimed 3.2) ok" in out
+    assert "tick on tick-wash: 5.24 (threshold 4.5, claimed 5.2) ok" in out
     assert "FAIL" not in out
     assert out.rstrip().endswith("problems")
     assert ", 0 problems" in out.splitlines()[-1]
-    # Every note form of the real table is read: 21 pairs, including "White text on it
-    # 11.5:1" (sheet on ballpoint-pressed) and "Text on it is `ink` (12.9:1)".
-    assert out.splitlines()[-1] == "check_contrast: 21 pairs checked, 0 problems"
-    assert "sheet on ballpoint-pressed: 11.45 (threshold 4.5, claimed 11.5) ok" in out
-    assert "ink on carbon-pink: 12.89 (threshold 4.5, claimed 12.9) ok" in out
+    # Every note form of the real table is read: 27 pairs, including "White text on it
+    # 9.8:1" (sheet on ballpoint-pressed) and "Text on it is `ink`".
+    assert out.splitlines()[-1] == "check_contrast: 27 pairs checked, 0 problems"
+    assert "sheet on ballpoint-pressed: 9.75 (threshold 4.5, claimed 9.8) ok" in out
+    assert "ink on carbon-pink: 11.86 (threshold 4.5, claimed none) ok" in out
 
 
 # ------------------------------------------------------------------ synthetic files
@@ -81,14 +81,14 @@ def test_synthetic_design_passes_and_reads_every_note_form(tmp_path: Path) -> No
     # "Text on it must be" (bond row) and "16.3:1 on bond" (ink row) name the same
     # pair; it is checked once, keeps its first position and takes the claimed ratio.
     assert lines[:-1] == [
-        "ink on bond: 16.29 (threshold 4.5, claimed 16.3) ok",
+        "ink on bond: 16.43 (threshold 4.5, claimed 16.4) ok",
         "muted on bond: 5.54 (threshold 4.5, claimed none) ok",
-        "hairline-strong on sheet: 3.59 (threshold 3.0, claimed 3.59) ok",
-        "tick on tick-wash: 4.59 (threshold 4.5, claimed 4.6) ok",
+        "hairline-strong on sheet: 3.24 (threshold 3.0, claimed 3.2) ok",
+        "tick on tick-wash: 5.24 (threshold 4.5, claimed 5.2) ok",
         "sheet on tick: 5.31 (threshold 4.5, claimed none) ok",
         "ink on tick-wash: 15.50 (threshold 4.5, claimed none) ok",
-        "sheet on ballpoint-pressed: 11.45 (threshold 4.5, claimed 11.5) ok",
-        "ink on carbon-pink: 12.89 (threshold 4.5, claimed 12.9) ok",
+        "sheet on ballpoint-pressed: 9.75 (threshold 4.5, claimed 9.8) ok",
+        "ink on carbon-pink: 11.86 (threshold 4.5, claimed none) ok",
     ]
 
 

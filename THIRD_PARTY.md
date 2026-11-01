@@ -6,6 +6,8 @@ Maintained by hand and checked by `scripts/check_licences.py`. Versions come fro
 | --- | --- | --- | --- | --- |
 | Gemma 4 weights (Google DeepMind) | `gemma4:e4b` (default tag; no digest recorded because no live run yet) | Apache 2.0 (per model card; link at submission) | Reading photos of papers | No |
 | Ollama | not bundled; the user installs it (any version with Gemma 4 support) | MIT | Local model runtime | No |
+| Inter (variable, latin and latin-ext subsets) | @fontsource-variable/inter 5.1.0 | OFL-1.1 | Interface font, Latin text; bundled in `static/fonts/` | No |
+| Lucide icons (selected SVG paths) | lucide-static 0.460.0 | ISC | Interface icons, inlined in `templates/components/icons.html` | No |
 | python-stdnum | 2.2 | LGPL-2.1-or-later | GSTIN, PAN, Aadhaar validation | No (dynamically imported) |
 | FastAPI / Starlette / Uvicorn | 0.143.0 / 1.7.0 / 0.54.0 | MIT / BSD-3 | Web framework and server | No |
 | Jinja2 / MarkupSafe | 3.1.6 / 3.0.4 | BSD-3 | Templates | No |
@@ -23,7 +25,7 @@ Maintained by hand and checked by `scripts/check_licences.py`. Versions come fro
 | PyYAML | 6.0.3 | MIT | Rule files | No |
 | python-ulid | 4.0.1 | MIT | IDs | No |
 | htmx | 2.0.11 | 0BSD (Zero-Clause BSD) | Partial updates (vendored file `static/js/vendor/htmx.min.js` with `htmx.LICENSE`) | No |
-| Mukta (Ek Type) | Fontsource 5.3.0 | OFL-1.1 | UI font, Latin + Devanagari | No (WOFF2 conversion only) |
+| Mukta (Ek Type) | Fontsource 5.3.0 | OFL-1.1 | UI font, Devanagari | No (WOFF2 conversion only) |
 | Kalam (Indian Type Foundry) | Fontsource 5.3.0 | OFL-1.1 | Handwriting face for corrections | No (WOFF2 conversion only) |
 | IBM Plex Sans (+ Devanagari) | not used (Mukta has `tnum`) | OFL-1.1 | Fallback UI font, only if Mukta lacks `tnum` | No |
 | Dev: pytest, pytest-asyncio, pytest-cov, hypothesis, playwright (pinned 1.56.0 for Chromium build 1194), pytest-playwright, axe-playwright-python, ruff, mypy, types-pyyaml, types-python-dateutil, bandit, pip-audit, import-linter, pre-commit, detect-secrets, reportlab, fonttools, brotli, jsonschema, pypdf | see `uv.lock` | MIT, BSD, Apache-2.0, MPL-2.0 (checked by `scripts/check_licences.py`) | Quality tooling, fixture generation, report schema validation (jsonschema), PDF text checks in E2E-10 (pypdf) | No |

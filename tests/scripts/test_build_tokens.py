@@ -94,6 +94,18 @@ def test_generates_every_token_family_in_front_matter_order(tmp_path: Path) -> N
     assert out.read_text(encoding="utf-8") == header + EXPECTED_BODY
 
 
+def test_shadow_and_gradient_groups_become_tokens(tmp_path: Path) -> None:
+    module = load_script("build_tokens")
+    data = module.read_front_matter(write_design(tmp_path))
+    data["shadow"] = {"card": "0 1px 2px rgba(0, 0, 0, 0.1)"}
+    data["gradient"] = {"night": "linear-gradient(135deg, #000000 0%, #111111 100%)"}
+
+    css = module.build_css(data)
+
+    assert "--shadow-card: 0 1px 2px rgba(0, 0, 0, 0.1);" in css
+    assert "--gradient-night: linear-gradient(135deg, #000000 0%, #111111 100%);" in css
+
+
 def test_output_is_deterministic(tmp_path: Path) -> None:
     design = write_design(tmp_path)
     first, second = tmp_path / "a.css", tmp_path / "b.css"

@@ -130,6 +130,16 @@ def build_css(data: Mapping[str, Any]) -> str:
         name = _name(raw_name, "rounded")
         out.append(f"  --radius-{name}: {_css_value(value, f'rounded.{name}')};\n")
 
+    for group, prop in (("shadow", "shadow"), ("gradient", "gradient")):
+        tokens = data.get(group, {})
+        if not isinstance(tokens, Mapping):
+            raise DesignError(f"front matter: '{group}' must be a mapping")
+        if tokens:
+            out.append(f"\n  /* {group.capitalize()}s */\n")
+        for raw_name, value in tokens.items():
+            name = _name(raw_name, group)
+            out.append(f"  --{prop}-{name}: {_css_value(value, f'{group}.{name}')};\n")
+
     spacing = _section(data, "spacing")
     base = _css_value(spacing.get("base", "4px"), "spacing.base")
     unit_match = UNIT_RE.match(base)

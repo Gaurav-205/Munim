@@ -3,70 +3,90 @@
    `uv run python scripts/build_tokens.py`. */
 :root {
   /* Colours */
-  --color-bond: #F3F4F6;
+  --color-bond: #F5F6FA;
   --color-sheet: #FFFFFF;
-  --color-ink: #15171C;
-  --color-ink-2: #4A4F5A;
-  --color-muted: #5C6272;
-  --color-hairline: #D5D8DE;
-  --color-hairline-strong: #80879A;
-  --color-ballpoint: #1F3DB8;
-  --color-ballpoint-pressed: #162E91;
-  --color-ballpoint-wash: #E6EBFA;
+  --color-ink: #111827;
+  --color-ink-2: #3B4354;
+  --color-muted: #596173;
+  --color-hairline: #E4E7EF;
+  --color-hairline-strong: #868FA3;
+  --color-ballpoint: #2F45D8;
+  --color-ballpoint-pressed: #2233AE;
+  --color-ballpoint-wash: #EDF0FE;
   --color-red-pen: #C4281C;
-  --color-red-wash: #FBE4E1;
-  --color-tick: #1E7A4F;
-  --color-tick-wash: #E3F2EA;
-  --color-highlighter: #F5D547;
-  --color-highlighter-wash: #FBF1C4;
-  --color-carbon-pink: #F2D4CF;
-  --color-carbon-yellow: #F3E7B0;
+  --color-red-wash: #FDECEA;
+  --color-tick: #157347;
+  --color-tick-wash: #E5F6ED;
+  --color-highlighter: #F2B92E;
+  --color-highlighter-wash: #FEF5DA;
+  --color-carbon-pink: #F6C9C1;
+  --color-carbon-yellow: #F6DF8E;
+  --color-night: #0D1230;
+  --color-night-2: #1C2350;
+  --color-on-night: #F4F6FF;
+  --color-on-night-muted: #B7BFDD;
+  --color-sky: #9DB0FF;
 
   /* Typography */
-  --font-ui: Mukta, 'IBM Plex Sans', 'Noto Sans Devanagari', system-ui, sans-serif;
+  --font-ui: 'Inter Variable', Mukta, 'Noto Sans Devanagari', system-ui, sans-serif;
   --font-hand: Kalam, 'Noto Sans Devanagari', cursive;
-  --type-display-amount-size: 56px;
-  --type-display-amount-line: 60px;
+  --type-display-hero-size: 56px;
+  --type-display-hero-line: 62px;
+  --type-display-hero-weight: 600;
+  --type-display-hero-tracking: -0.03em;
+  --type-display-amount-size: 44px;
+  --type-display-amount-line: 50px;
   --type-display-amount-weight: 600;
   --type-display-amount-tracking: -0.02em;
-  --type-display-size: 34px;
-  --type-display-line: 40px;
+  --type-display-size: 30px;
+  --type-display-line: 36px;
   --type-display-weight: 600;
-  --type-display-tracking: -0.01em;
-  --type-h1-size: 32px;
-  --type-h1-line: 38px;
+  --type-display-tracking: -0.02em;
+  --type-h1-size: 28px;
+  --type-h1-line: 36px;
   --type-h1-weight: 600;
-  --type-h1-tracking: -0.01em;
-  --type-h2-size: 24px;
-  --type-h2-line: 30px;
+  --type-h1-tracking: -0.02em;
+  --type-h2-size: 19px;
+  --type-h2-line: 28px;
   --type-h2-weight: 600;
-  --type-h3-size: 18px;
-  --type-h3-line: 26px;
+  --type-h2-tracking: -0.01em;
+  --type-h3-size: 15px;
+  --type-h3-line: 22px;
   --type-h3-weight: 600;
-  --type-body-size: 16px;
-  --type-body-line: 26px;
+  --type-body-size: 15px;
+  --type-body-line: 24px;
   --type-body-weight: 400;
-  --type-body-sm-size: 14px;
-  --type-body-sm-line: 22px;
+  --type-body-sm-size: 13px;
+  --type-body-sm-line: 20px;
   --type-body-sm-weight: 400;
   --type-label-size: 13px;
   --type-label-line: 18px;
   --type-label-weight: 500;
-  --type-number-size: 16px;
-  --type-number-line: 23px;
+  --type-number-size: 15px;
+  --type-number-line: 22px;
   --type-number-weight: 500;
-  --type-check-size: 15px;
-  --type-check-line: 20px;
+  --type-check-size: 13px;
+  --type-check-line: 18px;
   --type-check-weight: 500;
   --type-hand-size: 20px;
   --type-hand-line: 28px;
   --type-hand-weight: 400;
 
   /* Radii */
-  --radius-field: 2px;
-  --radius-panel: 6px;
+  --radius-field: 10px;
+  --radius-panel: 16px;
   --radius-stamp: 3px;
+  --radius-pill: 999px;
   --radius-none: 0px;
+
+  /* Shadows */
+  --shadow-card: 0 1px 2px rgba(13, 18, 48, 0.05), 0 1px 3px rgba(13, 18, 48, 0.06);
+  --shadow-raised: 0 4px 8px -2px rgba(13, 18, 48, 0.08), 0 12px 28px -8px rgba(13, 18, 48, 0.16);
+  --shadow-hero: 0 24px 64px -16px rgba(0, 0, 0, 0.55);
+
+  /* Gradients */
+  --gradient-night: linear-gradient(135deg, #0D1230 0%, #151C4B 62%, #24349F 130%);
+  --gradient-glow: radial-gradient(60% 80% at 80% 10%, rgba(47, 69, 216, 0.55) 0%, rgba(13, 18, 48, 0) 70%);
 
   /* Spacing (base 4px) */
   --space-1: 4px;
@@ -77,8 +97,15 @@
   --space-6: 32px;
   --space-7: 48px;
   --space-8: 64px;
+  --space-9: 96px;
 
   /* Motion (reduced motion turns these into instant state changes) */
+  --motion-ease-duration: 160ms;
+  --motion-ease-easing: cubic-bezier(.2,.7,.2,1);
+  --motion-rise-duration: 360ms;
+  --motion-rise-easing: cubic-bezier(.2,.7,.2,1);
+  --motion-rise-from: translateY(10px);
+  --motion-rise-to: translateY(0);
   --motion-stamp-duration: 160ms;
   --motion-stamp-easing: cubic-bezier(.2,.9,.3,1.2);
   --motion-stamp-from: scale(1.18) rotate(-4deg);
