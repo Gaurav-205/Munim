@@ -70,7 +70,7 @@ def _ifsc_finding(text: str | None, known: frozenset[str] | None) -> Finding:
     if code in known:
         return finding("IFSC-KNOWN", Status.PASSED, ref)
     # The list may be out of date, so an unknown code is for a person to check, not a failure.
-    return finding("IFSC-KNOWN", Status.NEEDS_REVIEW, ref, params={"printed": code})
+    return finding("IFSC-KNOWN", Status.NEEDS_REVIEW, ref, params=params)
 
 
 def _pan_findings(gstin_text: str | None, pan_text: str | None) -> list[Finding]:

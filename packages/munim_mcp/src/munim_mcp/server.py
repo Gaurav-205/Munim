@@ -7,6 +7,7 @@ no document upload tool, by design (privacy). Run it with `munim-mcp` (stdio).
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from datetime import date
 from decimal import Decimal, InvalidOperation
 from typing import Literal
@@ -15,7 +16,7 @@ from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 from pydantic import BaseModel, StrictInt
 
-from munim_core.clock import BankRate, ClockInput, compute
+from munim_core.clock import BankRate, ClockInput, Step, compute
 from munim_core.ids import check_gstin as core_check_gstin
 from munim_core.money import format_inr
 from munim_core.verify.catalog import RULES
@@ -113,6 +114,10 @@ def compute_msmed_interest(
     """
     if not bank_rates:
         raise ToolError("give at least one Bank Rate row; Munim does not assume a rate")
+    days = [r.effective_from for r in bank_rates]
+    repeated = sorted({d for d in days if days.count(d) > 1})
+    if repeated:
+        raise ToolError(f"two Bank Rate rows start on {repeated[0].isoformat()}; keep one")
     try:
         percents = [Decimal(r.percent) for r in bank_rates]
     except InvalidOperation as exc:
@@ -146,8 +151,18 @@ def compute_msmed_interest(
             "interest_formatted": format_inr(res.interest_paise),
             "total_formatted": format_inr(res.total_paise),
             "monthly_rests": sum(1 for s in res.steps if s.kind == "month"),
+            "bank_rates_used": _rates_used(res.steps),
         }
     )
+
+
+def _rates_used(steps: Sequence[Step]) -> list[dict[str, str]]:
+    """The Bank Rate rows the working used, in order, once each."""
+    seen: dict[date, str] = {}
+    for s in steps:
+        if s.rate_effective_from is not None and s.bank_rate_percent is not None:
+            seen.setdefault(s.rate_effective_from, str(s.bank_rate_percent))
+    return [{"effective_from": d.isoformat(), "percent": p} for d, p in seen.items()]
 
 
 @server.tool()

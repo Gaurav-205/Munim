@@ -210,3 +210,43 @@ def test_interest_refuses_a_rate_that_is_not_a_percent(percent: str) -> None:
         },
     )
     assert "Bank Rate percent" in message
+
+
+def test_interest_refuses_two_rates_on_the_same_day() -> None:
+    # Otherwise the answer would depend on the order of the rows (domain review).
+    message = call_error(
+        "compute_msmed_interest",
+        {
+            "principal_paise": 50_000_000,
+            "acceptance_date": "2026-03-20",
+            "agreement": "written",
+            "credit_days": 30,
+            "as_on": "2026-10-13",
+            "bank_rates": [
+                {"effective_from": "2025-06-06", "percent": "5.75"},
+                {"effective_from": "2025-06-06", "percent": "9"},
+            ],
+        },
+    )
+    assert "2025-06-06" in message
+
+
+def test_interest_says_which_bank_rates_it_used() -> None:
+    out = call(
+        "compute_msmed_interest",
+        {
+            "principal_paise": 50_000_000,
+            "acceptance_date": "2026-03-20",
+            "agreement": "written",
+            "credit_days": 30,
+            "as_on": "2026-10-13",
+            "bank_rates": [
+                {"effective_from": "2025-06-06", "percent": "5.75"},
+                {"effective_from": "2025-12-05", "percent": "5.50"},
+                {"effective_from": "2026-10-07", "percent": "5.75"},
+            ],
+        },
+    )
+    # docs/DOMAIN_RULES.md 5.4: every demo period starts before 7 Oct 2026, so 5.50% applies.
+    assert out["interest_paise"] == 4_097_671
+    assert out["bank_rates_used"] == [{"effective_from": "2025-12-05", "percent": "5.50"}]
