@@ -26,6 +26,7 @@ class ClaimDraft:
     value: str | None
     box: tuple[int, int, int, int] | None
     flag: str | None = None  # "runaway" when an over-long value was dropped
+    masked: bool = False  # an Aadhaar number was masked in this value; its box gets blurred
 
 
 def clean_value(text: str | None) -> str | None:
@@ -51,6 +52,7 @@ def _draft(name: str, index: int | None, value: Field_ | None) -> ClaimDraft:
         value=clean_value(value.value),
         box=value.box_2d.as_tuple() if value.box_2d else None,
         flag="runaway" if value.runaway else None,
+        masked=value.value is not None and _masked(value.value) != to_ascii_digits(value.value),
     )
 
 

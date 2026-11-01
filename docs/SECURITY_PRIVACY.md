@@ -46,7 +46,7 @@ Munim handles photographs of business papers containing GSTINs, names, addresses
 
 ## 5. Personal identifiers
 
-- **Aadhaar**: if a 12-digit number passes the Verhoeff checksum, it is masked (`XXXX XXXX 1234`) at normalisation, before storage, logging or display. The raw image still contains it (we do not redact pixels in v1; the About page says this plainly and advises not to photograph Aadhaar cards). A stretch task blurs the detected box in the derived image.
+- **Aadhaar**: if a 12-digit number passes the Verhoeff checksum, it is masked (`XXXX XXXX 1234`) at normalisation, before storage, logging or display. When the reader returned a box for that value, the box (grown by 8%) is pixelated in the derived image, the copy the app shows, crops and re-reads (`imageprep.pixelate_boxes`; event `paper.aadhaar_blurred` with counts only). The original upload is kept unchanged as evidence and still contains the number, as does any value the reader returned without a box; the README advises not to photograph Aadhaar cards.
 - **PAN / GSTIN / bank details**: stored because they are the point of the product; deletable.
 - No analytics, no cookies beyond CSRF and language.
 

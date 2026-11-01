@@ -13,15 +13,17 @@ import dataclasses
 import hashlib
 import shutil
 import time
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
-from typing import Literal, cast
+from typing import Any, Literal, cast
 
 import structlog
 
 from munim_ai import imageprep
 from munim_ai.extract import extract_paper
+from munim_ai.normalize import ClaimDraft
 from munim_ai.prompts import extraction_prompt
 from munim_ai.providers import Provider, ProviderError, ReadContext, make_provider
 from munim_ai.repair import RepairOutcome, repair_field
@@ -200,6 +202,28 @@ class PaperService:
             for name in PAPER_FIELDS[kind]
         ]
 
+    async def _blur_aadhaar(
+        self, case_id: str, paper: Any, drafts: Sequence[ClaimDraft], derived: bytes
+    ) -> None:
+        """Pixelate the boxes of values where an Aadhaar number was masked, in the derived image.
+
+        The original is kept untouched as evidence (docs/SECURITY_PRIVACY.md section 5).
+        """
+        masked = [d for d in drafts if d.masked]
+        if not masked:
+            return
+        boxes = [d.box for d in masked if d.box is not None]
+        if boxes:
+            blurred = await asyncio.to_thread(imageprep.pixelate_boxes, derived, boxes)
+            self.path(paper["derived_path"]).write_bytes(blurred)
+        self.db.event(
+            case_id,
+            "paper.aadhaar_blurred",
+            paper=paper["id"],
+            boxes=len(boxes),
+            without_box=len(masked) - len(boxes),
+        )
+
     async def read(self, paper_id: str) -> None:
         async with self._lock:
             paper = self.db.paper(paper_id)
@@ -254,6 +278,7 @@ class PaperService:
                 for d in outcome.claims
             ]
             self.db.replace_claims(paper_id, rows)
+            await self._blur_aadhaar(case_id, paper, outcome.claims, derived)
             self.db.update_paper(paper_id, status="repairing", **meta)
             self.db.touch(case_id)
             self.db.event(

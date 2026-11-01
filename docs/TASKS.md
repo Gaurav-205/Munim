@@ -115,7 +115,7 @@ Required:
 Stretch, in this order, only if Gates 0 to 5 are green:
 - [x] T6.6 `munim_mcp` with three tools + tests via the MCP SDK client; README snippet for connecting.
 - [x] T6.7 `skills/munim-checks/SKILL.md`; validate with `skills-ref validate`.
-- [ ] T6.8 IFSC check with razorpay/ifsc data (MIT); pixel blur for Aadhaar boxes; ZIP export.
+- [x] T6.8 IFSC check with razorpay/ifsc data (MIT); pixel blur for Aadhaar boxes; ZIP export.
 - [ ] T6.9 Real-paper evaluation (local), write `docs/EVAL_REAL.md` with aggregates only.
 
 **Final exit (Definition of Done):** see the master prompt's "Definition of Done" section (`docs/planning/MASTER_PROMPT.md` in the Claude Code kit).
