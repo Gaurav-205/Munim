@@ -52,7 +52,7 @@
   "paper.delete": "Delete this paper",
   "paper.photo": "Photo of the {kind_key}",
   "paper.err.type": "This file type isn't supported. Use a JPEG, PNG, WebP or HEIC photo, or a PDF.",
-  "paper.err.size": "This file is larger than 15 MB. Take the photo again at a lower quality, or crop it.",
+  "paper.err.size": "This file is larger than {mb} MB. Take the photo again at a lower quality, or crop it.",
   "paper.err.corrupt": "This file can't be opened as a photo or PDF. Choose the file again.",
   "paper.err.kind": "Choose what kind of paper this is.",
   "paper.err.nofile": "Choose a file first.",

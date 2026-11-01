@@ -55,7 +55,7 @@ Glossary used consistently:
 | paper.rotate | Rotate | घुमाएँ |
 | paper.delete | Delete this paper | यह कागज़ हटाएँ |
 | paper.err.type | This file type isn't supported. Use a JPEG, PNG, WebP or HEIC photo, or a PDF. | यह फ़ाइल प्रकार स्वीकार नहीं है। JPEG, PNG, WebP या HEIC फ़ोटो, या पीडीएफ़ इस्तेमाल करें। |
-| paper.err.size | This file is larger than 15 MB. Take the photo again at a lower quality, or crop it. | यह फ़ाइल 15 एमबी से बड़ी है। कम क्वालिटी में फ़ोटो दोबारा लें, या उसे क्रॉप करें। |
+| paper.err.size | This file is larger than {mb} MB. Take the photo again at a lower quality, or crop it. | यह फ़ाइल {mb} एमबी से बड़ी है। कम क्वालिटी में फ़ोटो दोबारा लें, या उसे क्रॉप करें। |
 | paper.err.dark | This photo is too dark to read. Retake it in daylight. | यह फ़ोटो पढ़ने के लिए बहुत अँधेरी है। दिन की रोशनी में दोबारा लें। |
 | paper.err.blur | This photo is blurred. Hold the phone still and retake it. | यह फ़ोटो धुँधली है। फ़ोन स्थिर रखकर दोबारा लें। |
 | paper.err.read | Munim couldn't read this paper automatically. Enter the values by hand. | मुनीम यह कागज़ अपने-आप नहीं पढ़ सका। मान हाथ से भरें। |

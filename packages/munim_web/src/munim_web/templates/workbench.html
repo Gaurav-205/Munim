@@ -14,7 +14,7 @@
   </div>
 </div>
 
-{% if error %}<p class="message message-failed" role="alert">{{ t(error, n=unresolved | length, field=t("settings.case.as_on")) | code }}</p>{% endif %}
+{% if error %}<p class="message message-failed" role="alert">{{ t(error, n=unresolved | length, field=t("settings.case.as_on"), mb=upload_mb) | code }}</p>{% endif %}
 
 <div class="wb-grid">
   {# ------------------------------------------------ papers rail #}

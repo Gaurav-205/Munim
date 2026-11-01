@@ -56,6 +56,8 @@ settings = Settings(
     replay_dir=ROOT / "eval" / "fixtures" / "replay",
     provider="replay",
     allowed_hosts=deploy_hosts(os.environ),
+    # Vercel refuses request bodies over 4.5 MB with its own error page; stay under it.
+    max_upload_bytes=4 * 1024 * 1024,
 )
 
 app = create_app(settings)
