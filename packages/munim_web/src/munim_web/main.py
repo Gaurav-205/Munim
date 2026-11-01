@@ -44,6 +44,7 @@ def create_app(settings: Settings | None = None) -> SecurityMiddleware:
     settings.uploads.mkdir(parents=True, exist_ok=True)
     db = Database.open(settings.db_path)
     db.seed_bank_rates(settings.rules_dir)
+    db.load_ifsc(settings.rules_dir)
     stuck = db.fail_stuck_reads()
 
     @asynccontextmanager

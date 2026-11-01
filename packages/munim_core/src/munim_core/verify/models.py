@@ -99,4 +99,6 @@ class CaseState:
     papers: Mapping[str, PaperState]
     as_on: date | None = None
     udyam_number: str | None = None
+    # Full IFSC codes from the bundled razorpay/ifsc list; None when no list is loaded.
+    known_ifsc: frozenset[str] | None = None
     extra: Mapping[str, str] = field(default_factory=dict)

@@ -31,7 +31,7 @@ _SPECS = (
     RuleSpec("PAN-FORMAT", "1.0", "identifiers", Severity.WARNING),
     RuleSpec("AADHAAR-MASK", "1.0", "security", Severity.WARNING, runs_in_verify=False),
     RuleSpec("UDYAM-FORMAT", "1.0", "identifiers", Severity.WARNING),
-    RuleSpec("IFSC-KNOWN", "1.0", "identifiers", Severity.WARNING, runs_in_verify=False),
+    RuleSpec("IFSC-KNOWN", "1.0", "identifiers", Severity.WARNING),
     RuleSpec("VALUE-FORMAT", "1.0", "invoice", Severity.BLOCKING),
     RuleSpec("INV-LINE-AMOUNT", "1.0", "invoice", Severity.BLOCKING),
     RuleSpec("INV-TAXABLE-SUM", "1.0", "invoice", Severity.BLOCKING),

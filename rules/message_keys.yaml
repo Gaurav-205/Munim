@@ -10,6 +10,8 @@
 - rule.GSTIN-PAN
 - rule.PAN-FORMAT
 - rule.UDYAM-FORMAT
+- rule.IFSC-KNOWN
+- rule.IFSC-KNOWN.format
 - rule.VALUE-FORMAT.amount
 - rule.VALUE-FORMAT.date
 - rule.VALUE-FORMAT.quantity

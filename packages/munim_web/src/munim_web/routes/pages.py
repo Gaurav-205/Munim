@@ -25,9 +25,11 @@ from munim_core.tax_disallowance import compute_43b_disallowance
 from munim_core.text import whole_number
 from munim_core.verify.catalog import RULES
 from munim_core.verify.models import FieldRef
-from munim_web.db import Database
+from munim_web import __version__
+from munim_web.db import Database, now
 from munim_web.services import views
 from munim_web.services.case_service import CaseSnapshot, load_case, ref_key, ref_of
+from munim_web.services.export import build_zip
 from munim_web.services.notice import notice_text
 from munim_web.services.papers import PROVIDERS, PaperService, UploadError
 from munim_web.translate import LANGS, translator
@@ -434,6 +436,25 @@ async def working(request: Request, case_id: str) -> Response:
 @router.get("/cases/{case_id}/dossier", response_class=HTMLResponse)
 async def dossier(request: Request, case_id: str) -> Response:
     snap = snapshot_or_404(request, case_id)
+    db_of(request).event(case_id, "evidence.viewed")
+    return dossier_page(request, snap)
+
+
+@router.get("/cases/{case_id}/export.zip")
+async def export_zip(request: Request, case_id: str) -> Response:
+    snap = snapshot_or_404(request, case_id)
+    meta = {"app_version": __version__, "exported_at": now()}
+    evidence = bytes(dossier_page(request, snap).body)
+    data = build_zip(snap, papers_of(request), evidence, meta)
+    db_of(request).event(case_id, "export.downloaded", papers=len(snap.papers))
+    return Response(
+        data,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="munim-{case_id}.zip"'},
+    )
+
+
+def dossier_page(request: Request, snap: CaseSnapshot) -> HTMLResponse:
     lang = language(request)
     t = translator(lang, request.app.state.settings.dev)
     model = snap.dossier()
@@ -442,7 +463,6 @@ async def dossier(request: Request, case_id: str) -> Response:
         rows = views.rows_for(snap, paper["id"], t)
         papers.append({"paper": paper, "rows": rows})
     notices = {code: notice_text(snap, code, today(request)) for code in LANGS}
-    db_of(request).event(case_id, "evidence.viewed")
     disallowance = None
     if snap.clock.outcome and snap.clock.outcome.result and snap.clock.principal_paise:
         disallowance = compute_43b_disallowance(

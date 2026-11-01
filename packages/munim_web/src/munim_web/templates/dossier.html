@@ -7,6 +7,7 @@
 <div class="dossier-tools no-print">
   <a href="/cases/{{ case.id }}">{{ t("working.back") }}</a>
   <button class="btn btn-secondary" type="button" data-print>{{ icon("print") }} {{ t("evidence.print") }}</button>
+  <a class="btn btn-secondary" href="/cases/{{ case.id }}/export.zip" download>{{ icon("sheet") }} {{ t("evidence.export") }}</a>
 </div>
 
 <article class="dossier">

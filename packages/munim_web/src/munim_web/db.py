@@ -18,6 +18,8 @@ from typing import Any
 import yaml
 from ulid import ULID
 
+from munim_core.ids import ifsc_codes
+
 __all__ = ["Database", "new_id", "now"]
 
 # Column names that update helpers may set. Values are always bound as parameters; names are
@@ -83,6 +85,8 @@ def now() -> str:
 class Database:
     path: Path
     conn: sqlite3.Connection
+    # IFSC codes from rules/ifsc.json (razorpay/ifsc), read once at startup; None if absent.
+    known_ifsc: frozenset[str] | None = None
 
     @classmethod
     def open(cls, path: Path) -> Database:
@@ -116,6 +120,12 @@ class Database:
             self.conn.execute("COMMIT")
             applied.append(entry.name)
         return applied
+
+    def load_ifsc(self, rules_dir: Path) -> None:
+        """Read the bundled IFSC list for rule IFSC-KNOWN; without the file the rule skips."""
+        path = rules_dir / "ifsc.json"
+        if path.exists():
+            self.known_ifsc = ifsc_codes(json.loads(path.read_text(encoding="utf-8")))
 
     def seed_bank_rates(self, rules_dir: Path) -> None:
         """Load rules/bank_rate.yaml into an empty table (the person confirms rows later)."""

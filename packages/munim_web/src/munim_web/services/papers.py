@@ -9,6 +9,7 @@ Reads run one at a time (a semaphore) as asyncio tasks, and every state change i
 from __future__ import annotations
 
 import asyncio
+import dataclasses
 import hashlib
 import shutil
 import time
@@ -315,20 +316,18 @@ class PaperService:
 
         def still_failing(value: str) -> bool:
             # Re-run the rules with the proposed value and look at the rules that failed before.
-            from munim_core.verify.models import CaseState, ClaimValue, PaperState
+            from munim_core.verify.models import ClaimValue, PaperState
 
             state = snapshot.state
             current = state.papers[ref.paper_kind]
             fields = dict(current.fields)
             fields[ref.field] = ClaimValue(raw=claim["value_read"], text=value, source="repair")
-            changed = CaseState(
+            changed = dataclasses.replace(
+                state,
                 papers={
                     **state.papers,
                     ref.paper_kind: PaperState(current.kind, fields, current.lines),
                 },
-                as_on=state.as_on,
-                udyam_number=state.udyam_number,
-                extra=state.extra,
             )
             return any(
                 f.rule_id in failing_rules

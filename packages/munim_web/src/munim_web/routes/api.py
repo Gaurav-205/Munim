@@ -12,7 +12,8 @@ from pydantic import BaseModel, Field
 from munim_core.clock import BankRate, ClockError, ClockInput, Payment, compute
 from munim_core.ids import check_gstin
 from munim_core.verify.catalog import RULES
-from munim_web.services.case_service import load_case, ref_of
+from munim_web.services.case_service import load_case
+from munim_web.services.export import claims_by_paper
 
 router = APIRouter(prefix="/api/v1")
 
@@ -116,23 +117,4 @@ async def claims(request: Request, case_id: str) -> dict[str, list[dict[str, Any
     snap = load_case(request.app.state.db, case_id, date.today())
     if snap is None:
         raise problem(404, "No such case", "case.notfound")
-    out: dict[str, list[dict[str, Any]]] = {}
-    for c in snap.claims:
-        ref = ref_of(c)
-        box = [c["box_y1"], c["box_x1"], c["box_y2"], c["box_x2"]]
-        out.setdefault(c["paper_id"], []).append(
-            {
-                "id": c["id"],
-                "field": ref.field,
-                "index": ref.index,
-                "value_read": c["value_read"],
-                "value_current": c["value_current"],
-                "source": c["source"],
-                "box": None if None in box else box,
-                "findings": [
-                    {"rule_id": f.rule_id, "status": str(f.status), "message_key": f.message_key}
-                    for f in snap.findings_for(ref)
-                ],
-            }
-        )
-    return out
+    return claims_by_paper(snap)

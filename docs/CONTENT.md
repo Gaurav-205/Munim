@@ -81,6 +81,8 @@ Glossary used consistently:
 | rule.GSTIN-STATE | The first two digits {code} are not a state code. | पहले दो अंक {code} किसी राज्य का कोड नहीं हैं। |
 | rule.GSTIN-CHECKSUM | The last character doesn't match the other 14 characters. Check the GSTIN on the paper. | आख़िरी अक्षर बाकी 14 अक्षरों से मेल नहीं खाता। कागज़ पर GSTIN देखें। |
 | rule.GSTIN-PAN | The PAN inside the GSTIN ({pan_gstin}) differs from the PAN printed on the paper ({pan_paper}). | GSTIN के अंदर का PAN ({pan_gstin}) कागज़ पर छपे PAN ({pan_paper}) से अलग है। |
+| rule.IFSC-KNOWN | The IFSC {printed} is not in Munim's bank list. The list may be out of date, so check the code with the bank. | IFSC {printed} मुनीम की बैंक सूची में नहीं है। सूची पुरानी हो सकती है, इसलिए यह कोड बैंक से जाँचें। |
+| rule.IFSC-KNOWN.format | An IFSC is 11 characters: 4 letters, a zero, then 6 letters or digits. {printed} is not. | IFSC 11 अक्षर का होता है: 4 अक्षर, एक शून्य, फिर 6 अक्षर या अंक। {printed} ऐसा नहीं है। |
 | rule.INV-TOTAL | Taxable value plus tax is {computed}, but the invoice total is {printed}. | कर-योग्य मूल्य और टैक्स मिलाकर {computed} होता है, पर बिल का कुल {printed} है। |
 | rule.INV-TAXABLE-SUM | The lines add up to {computed}, but the taxable total is {printed}. | लाइनों का जोड़ {computed} है, पर कर-योग्य कुल {printed} है। |
 | rule.INV-LINE-AMOUNT | Line {n}: quantity times rate is {computed}, but the amount is {printed}. | लाइन {n}: मात्रा गुणा दर {computed} है, पर रकम {printed} है। |
@@ -107,6 +109,7 @@ Glossary used consistently:
 | stamp.word | CHECKED | जाँचा गया |
 | evidence.open | Open evidence file | सबूत की फ़ाइल खोलें |
 | evidence.print | Print | प्रिंट करें |
+| evidence.export | Download ZIP (photos, values, evidence file) | ZIP डाउनलोड करें (फ़ोटो, वैल्यू, सबूत फ़ाइल) |
 | evidence.title | Evidence file | सबूत की फ़ाइल |
 | evidence.draft | Draft for review. Not legal advice. | समीक्षा के लिए मसौदा। यह कानूनी सलाह नहीं है। |
 | notice.copy | Copy notice text | नोटिस का पाठ कॉपी करें |
