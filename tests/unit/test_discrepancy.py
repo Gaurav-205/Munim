@@ -51,7 +51,8 @@ def test_quantity_mismatch() -> None:
     assert heatmap.matched_items == 0
     assert heatmap.discrepant_items == 1
     assert heatmap.items[0].status == "qty_mismatch"
-    assert "Delivered 40 vs Billed 50" in heatmap.items[0].notes
+    assert heatmap.items[0].note_key == "discrepancy.note.qty"
+    assert heatmap.items[0].note_params == {"delivered": "40", "billed": "50"}
 
 
 def test_unmatched_missing_item() -> None:

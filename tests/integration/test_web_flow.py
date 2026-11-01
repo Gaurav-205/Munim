@@ -193,6 +193,15 @@ def test_samadhaan_and_discrepancy_pages(web: Web) -> None:
     assert "Discrepancy" in r_disc.text
 
 
+def test_discrepancy_page_in_hindi_has_no_english_notes(web: Web) -> None:
+    case_id, _ = demo_case(web)
+    web.client.cookies.set("munim_lang", "hi")
+    text = web.client.get(f"/cases/{case_id}/discrepancies").text
+    for english in ("Exact quantity", "Stamp text matches", "Delivered ", "not found on"):
+        assert english not in text
+    assert "पूरी मात्रा" in text
+
+
 def test_non_default_case_settings_flow(web: Web) -> None:
     case_id, _ = demo_case(web)
     r = web.post(

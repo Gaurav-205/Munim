@@ -28,7 +28,7 @@
     {% for f in report.failure_examples[:6] %}
       <li class="card">
         {% if f.crop %}<img src="{{ f.crop }}" alt="" class="crop-large">{% endif %}
-        <p><code>{{ f.paper }}</code>, {{ f.field }}</p>
+        <p><code>{{ f.paper }}</code>, {{ t("field." ~ f.field.split("[")[0]) }}</p>
         <p>{{ t("eval.f.truth") }}: <span class="num">{{ f.truth }}</span>. {{ t("eval.f.read") }}: <span class="num">{{ f.read or "" }}</span>.</p>
         <p>{% if f.caught %}{{ t("eval.f.caught", rules=f.rules | join(", ")) }}{% else %}{{ t("eval.f.missed") }}{% endif %}</p>
       </li>

@@ -39,7 +39,6 @@ class StampForensicsResult:
     forensic_status: ForensicStatus
     buyer_similarity: int
     supplier_similarity: int
-    notes: str
 
 
 def analyze_challan_stamp(
@@ -56,7 +55,6 @@ def analyze_challan_stamp(
             forensic_status="no_stamp",
             buyer_similarity=0,
             supplier_similarity=0,
-            notes="No stamp impression text detected on challan",
         )
 
     norm_stamp = normalise_name(stamp_text)
@@ -71,13 +69,10 @@ def analyze_challan_stamp(
 
     if is_buyer:
         status: ForensicStatus = "verified_buyer"
-        notes = f"Stamp text matches buyer name ({buyer_score}% match)"
     elif is_supplier:
         status = "possible_self_stamp"
-        notes = "Warning: Stamp appears to belong to supplier rather than buyer receiving entity"
     else:
         status = "third_party_or_unmatched"
-        notes = "Stamp impression present but does not match buyer name"
 
     return StampForensicsResult(
         is_stamped=True,
@@ -86,5 +81,4 @@ def analyze_challan_stamp(
         forensic_status=status,
         buyer_similarity=buyer_score,
         supplier_similarity=supplier_score,
-        notes=notes,
     )

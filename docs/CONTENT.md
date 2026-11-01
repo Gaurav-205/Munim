@@ -255,6 +255,11 @@ Signature: ____________________
 | case.ready.challan | With the receiver's stamp or signature. It shows when the goods arrived. | पाने वाले की मुहर या दस्तखत के साथ। इससे पता चलता है कि माल कब पहुँचा। |
 | case.ready.po | It shows the credit days you agreed with the buyer, if any. | इससे खरीदार के साथ तय उधार के दिन पता चलते हैं, अगर तय हुए हों। |
 | discrepancy.items | Items on the invoice and the challan | इनवॉइस और चालान की चीज़ें |
+| discrepancy.note.match | The full quantity was delivered and billed. | पूरी मात्रा पहुँची और उसी का बिल बना। |
+| discrepancy.note.qty | Delivered {delivered}, billed {billed}. | पहुँचा {delivered}, बिल बना {billed} का। |
+| discrepancy.note.missing | {description} isn't on the delivery challan. | {description} डिलीवरी चालान पर नहीं है। |
+| discrepancy.note.unparseable | A quantity on the invoice or the challan can't be read. | इनवॉइस या चालान की मात्रा पढ़ी नहीं जा सकी। |
+| discrepancy.note.units | Units differ: {invoice} on the invoice, {challan} on the challan. | इकाई अलग है: इनवॉइस पर {invoice}, चालान पर {challan}। |
 | samadhaan.fields | Fields for the portal | पोर्टल के लिए जानकारी |
 | land.title | Late payment evidence for small suppliers | छोटे सप्लायरों के लिए देर से भुगतान का सबूत |
 | land.nav.how | How it works | यह कैसे काम करता है |

@@ -14,11 +14,11 @@
 <article class="card">
   <h2>{{ t("discrepancy.stamp_title") }}</h2>
   {% if stamp_res.forensic_status == "verified_buyer" %}
-    <p class="message message-passed">{{ icon("tick") }} {{ t("discrepancy.stamp_match") }}: {{ stamp_res.notes }}</p>
+    <p class="message message-passed">{{ icon("tick") }} {{ t("discrepancy.stamp_match") }}</p>
   {% elif stamp_res.forensic_status == "possible_self_stamp" %}
-    <p class="message message-failed">{{ icon("strike") }} {{ t("discrepancy.stamp_self") }}: {{ stamp_res.notes }}</p>
+    <p class="message message-failed">{{ icon("strike") }} {{ t("discrepancy.stamp_self") }}</p>
   {% elif stamp_res.forensic_status == "third_party_or_unmatched" %}
-    <p class="message message-review">{{ icon("bracket-hand") }} {{ t("discrepancy.stamp_unmatched") }}: {{ stamp_res.notes }}</p>
+    <p class="message message-review">{{ icon("bracket-hand") }} {{ t("discrepancy.stamp_unmatched") }}</p>
   {% else %}
     <p class="muted">{{ t("discrepancy.stamp_none") }}</p>
   {% endif %}
@@ -54,7 +54,7 @@
             <span class="badge verdict verdict-review">{{ icon("bracket-hand") }} <span>{{ t("discrepancy.missing") }}</span></span>
           {% endif %}
         </td>
-        <td>{{ item.notes }}</td>
+        <td>{{ t(item.note_key, **item.note_params) }}</td>
       </tr>
     {% endfor %}
     </tbody>
