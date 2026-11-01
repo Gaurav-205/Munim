@@ -21,7 +21,6 @@ from munim_core.discrepancy import build_discrepancy_map
 from munim_core.money import MoneyParseError, parse_inr
 from munim_core.samadhaan import SamadhaanInput, build_samadhaan_packet
 from munim_core.stamp_forensics import analyze_challan_stamp
-from munim_core.tax_disallowance import compute_43b_disallowance
 from munim_core.text import whole_number
 from munim_core.verify.catalog import RULES
 from munim_core.verify.models import FieldRef
@@ -479,13 +478,6 @@ def dossier_page(request: Request, snap: CaseSnapshot) -> HTMLResponse:
         rows = views.rows_for(snap, paper["id"], t)
         papers.append({"paper": paper, "rows": rows})
     notices = {code: notice_text(snap, code, today(request)) for code in LANGS}
-    disallowance = None
-    if snap.clock.outcome and snap.clock.outcome.result and snap.clock.principal_paise:
-        disallowance = compute_43b_disallowance(
-            invoice_total_paise=snap.clock.principal_paise,
-            due_date=snap.clock.outcome.result.due_date,
-            as_on=snap.clock.as_on,
-        )
     return render(
         request,
         "dossier.html",
@@ -494,7 +486,6 @@ def dossier_page(request: Request, snap: CaseSnapshot) -> HTMLResponse:
         model=model,
         papers=papers,
         notices=notices,
-        disallowance=disallowance,
         step_label=views.step_label,
         **views.clock_context(snap, t),
     )

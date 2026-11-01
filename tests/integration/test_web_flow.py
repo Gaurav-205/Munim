@@ -174,7 +174,7 @@ def test_editing_a_value_undoes_the_confirmation(web: Web) -> None:
     )
 
 
-def test_samadhaan_and_discrepancy_and_43b_pages(web: Web) -> None:
+def test_samadhaan_and_discrepancy_pages(web: Web) -> None:
     case_id, papers = demo_case(web)
     # Check Samadhaan page loads
     r_samadhaan = web.client.get(f"/cases/{case_id}/samadhaan")
